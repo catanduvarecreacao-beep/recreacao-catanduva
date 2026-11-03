@@ -1,0 +1,1 @@
+import type { Metadata } from "next";import "./globals.css";export const metadata:Metadata={title:"Recreação Catanduva | Diversão, aprendizado e cuidado",description:"Sistema de avaliação de aulas da Recreação Catanduva."};export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="pt-BR"><body>{children}</body></html>}
