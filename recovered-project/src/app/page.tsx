@@ -427,11 +427,55 @@ export default function Home() {
             </div>
             <label className="foot">✓ Avaliações organizadas por escola, segmento e turma</label>
           </div>
-          <div className="art">
-            <div className="artBall">◎</div>
-            <strong>🎈 Hoje tem brincadeira</strong>
-            <p>Brincar, aprender e crescer juntos.</p>
+          <div className="heroVisual" aria-label="Painel ilustrativo de atividades educativas">
+            <div className="visualGlow" />
+            <div className="floatingShape shapeOne">✦</div>
+            <div className="floatingShape shapeTwo">●</div>
+            <div className="activityCard">
+              <div className="activityCardTop">
+                <span className="activityIcon">✿</span>
+                <span className="activityTag">APRENDER BRINCANDO</span>
+              </div>
+              <div className="activityIllustration">
+                <div className="sunShape" />
+                <div className="rainbowShape"><i /><i /><i /></div>
+                <div className="ballShape ballBlue" />
+                <div className="ballShape ballOrange" />
+                <div className="blockShape blockYellow" />
+                <div className="blockShape blockPurple" />
+              </div>
+              <div className="activityCardBottom">
+                <div>
+                  <strong>Pequenas descobertas,</strong>
+                  <span>grandes possibilidades.</span>
+                </div>
+                <span className="arrowBubble">↗</span>
+              </div>
+            </div>
+            <div className="floatingNote noteTop"><span>✦</span> Criatividade</div>
+            <div className="floatingNote noteBottom"><span>♡</span> Cuidado em cada detalhe</div>
           </div>
+        </section>
+        <section className="homeHighlights" aria-label="Nossos valores">
+          <div className="highlightIntro">
+            <small>NOSSO PROPÓSITO</small>
+            <h2>Um espaço para <em>crescer e descobrir.</em></h2>
+          </div>
+          <article className="highlightCard highlightBlue">
+            <span className="highlightIcon">✦</span>
+            <h3>Aprendizagem</h3>
+            <p>Experiências que despertam a curiosidade e valorizam cada descoberta.</p>
+          </article>
+          <article className="highlightCard highlightOrange">
+            <span className="highlightIcon">♡</span>
+            <h3>Acolhimento</h3>
+            <p>Um olhar atento e cuidadoso para respeitar o ritmo de cada criança.</p>
+          </article>
+          <article className="highlightCard highlightYellow">
+            <span className="highlightIcon">✿</span>
+            <h3>Brincadeira</h3>
+            <p>O brincar como caminho para explorar, conviver e aprender.</p>
+          </article>
         </section>
       )}
 
