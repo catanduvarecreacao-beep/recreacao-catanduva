@@ -84,6 +84,7 @@ export default function Home() {
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [ratings, setRatings] = useState<Record<number, string>>({});
   const [descriptions, setDescriptions] = useState<Record<number, string>>({});
+  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
 
   const [directorSegment, setDirectorSegment] = useState("Jardim");
   const [directorBimester, setDirectorBimester] = useState(1);
@@ -234,6 +235,32 @@ export default function Home() {
     setSession(null);
     setView("home");
     setMessage("");
+  }
+
+  function getMaterialEmbedUrl(rawUrl: string) {
+    try {
+      const url = new URL(rawUrl);
+      const host = url.hostname.replace(/^www\\./, "");
+      if (host === "youtu.be") return `https://www.youtube-nocookie.com/embed/${url.pathname.slice(1)}`;
+      if (host.includes("youtube.com")) {
+        const videoId = url.searchParams.get("v");
+        if (url.pathname.startsWith("/embed/")) return rawUrl;
+        if (videoId) return `https://www.youtube-nocookie.com/embed/${videoId}`;
+      }
+      if (host.includes("drive.google.com")) {
+        const fileId = url.pathname.match(/\\/file\\/d\\/([^/]+)/)?.[1];
+        if (fileId) return `https://drive.google.com/file/d/${fileId}/preview`;
+      }
+      if (host === "docs.google.com" && /\\/(document|presentation|spreadsheets)\\/d\\//.test(url.pathname)) {
+        return rawUrl.replace(/\\/(edit|view)(\\?.*)?$/, "/preview");
+      }
+      if (host.includes("vimeo.com") && /^\\/\\d+/.test(url.pathname)) {
+        return `https://player.vimeo.com/video/${url.pathname.slice(1)}`;
+      }
+      return rawUrl;
+    } catch {
+      return rawUrl;
+    }
   }
 
   async function saveEvaluation(lesson: Lesson) {
@@ -585,7 +612,6 @@ export default function Home() {
                   const existing = evaluations.find(
                     (item) => item.lesson_number === lesson.lesson_number,
                   );
-
                   return (
                     <article className="lesson" key={lesson.id}>
                       <div className="between">
@@ -595,54 +621,102 @@ export default function Home() {
                         </span>
                       </div>
                       <h3>{lesson.title || `Aula ${lesson.lesson_number}`}</h3>
-                      {lesson.material_url && (
-                        <a href={lesson.material_url} target="_blank" rel="noreferrer">
-                          Abrir material ↗
-                        </a>
-                      )}
-                      <label>
-                        Avaliação
-                        <select
-                          value={ratings[lesson.lesson_number] || ""}
-                          onChange={(event) =>
-                            setRatings((current) => ({
-                              ...current,
-                              [lesson.lesson_number]: event.target.value,
-                            }))
-                          }
-                        >
-                          <option value="">Selecione...</option>
-                          {RATINGS.map((rating) => (
-                            <option value={rating} key={rating}>
-                              {rating}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>
-                        Observações
-                        <textarea
-                          rows={3}
-                          value={descriptions[lesson.lesson_number] || ""}
-                          onChange={(event) =>
-                            setDescriptions((current) => ({
-                              ...current,
-                              [lesson.lesson_number]: event.target.value,
-                            }))
-                          }
-                        />
-                      </label>
-                      <button
-                        className="save"
-                        onClick={() => void saveEvaluation(lesson)}
-                        disabled={loading}
-                      >
-                        {existing ? "Alterar avaliação" : "Registrar avaliação"} →
+                      <p className="lessonSummary">
+                        {lesson.material_url
+                          ? "Abra o material para visualizar a proposta e registrar sua avaliação."
+                          : "Esta aula ainda não possui material anexado. Você pode registrar a avaliação."}
+                      </p>
+                      <button className="save" onClick={() => setSelectedLesson(lesson)}>
+                        {lesson.material_url ? "Abrir material e avaliar" : "Avaliar aula"} →
                       </button>
                     </article>
                   );
                 })}
               </div>
+
+              {selectedLesson && (
+                <div
+                  className="lessonModalBackdrop"
+                  role="presentation"
+                  onMouseDown={(event) => {
+                    if (event.target === event.currentTarget) setSelectedLesson(null);
+                  }}
+                >
+                  <section className="lessonModal" role="dialog" aria-modal="true" aria-labelledby="lessonModalTitle">
+                    <header className="lessonModalHeader">
+                      <div>
+                        <small>AULA {selectedLesson.lesson_number}</small>
+                        <h2 id="lessonModalTitle">{selectedLesson.title || `Aula ${selectedLesson.lesson_number}`}</h2>
+                        <p>Consulte o material e registre a avaliação desta aula.</p>
+                      </div>
+                      <button type="button" className="modalClose" aria-label="Fechar janela" onClick={() => setSelectedLesson(null)}>×</button>
+                    </header>
+
+                    {selectedLesson.material_url ? (
+                      <div className="lessonMaterial">
+                        <iframe
+                          src={getMaterialEmbedUrl(selectedLesson.material_url)}
+                          title={`Material da aula ${selectedLesson.lesson_number}`}
+                          allow="autoplay; fullscreen; clipboard-write"
+                          allowFullScreen
+                        />
+                        <a href={selectedLesson.material_url} target="_blank" rel="noreferrer">
+                          Se o material não aparecer, abra em uma nova aba ↗
+                        </a>
+                      </div>
+                    ) : (
+                      <div className="materialMissing">
+                        O material desta aula ainda não foi disponibilizado. Você pode preencher a avaliação abaixo.
+                      </div>
+                    )}
+
+                    <div className="modalEvaluation">
+                      <div className="between">
+                        <h3>Avaliação da aula</h3>
+                        <span className={evaluations.some((item) => item.lesson_number === selectedLesson.lesson_number) ? "done" : "pending"}>
+                          {evaluations.some((item) => item.lesson_number === selectedLesson.lesson_number) ? "Já avaliada" : "Pendente"}
+                        </span>
+                      </div>
+                      <label>
+                        Como foi a realização desta aula?
+                        <select
+                          value={ratings[selectedLesson.lesson_number] || ""}
+                          onChange={(event) => setRatings((current) => ({
+                            ...current,
+                            [selectedLesson.lesson_number]: event.target.value,
+                          }))}
+                        >
+                          <option value="">Selecione...</option>
+                          {RATINGS.map((rating) => <option value={rating} key={rating}>{rating}</option>)}
+                        </select>
+                      </label>
+                      <label>
+                        Observações sobre a realização da aula
+                        <textarea
+                          rows={4}
+                          value={descriptions[selectedLesson.lesson_number] || ""}
+                          onChange={(event) => setDescriptions((current) => ({
+                            ...current,
+                            [selectedLesson.lesson_number]: event.target.value,
+                          }))}
+                          placeholder="Registre observações, participação das crianças, adaptações ou pontos de atenção..."
+                        />
+                      </label>
+                      <div className="modalActions">
+                        <button type="button" className="secondary" onClick={() => setSelectedLesson(null)}>Fechar</button>
+                        <button
+                          type="button"
+                          className="primary"
+                          onClick={() => void saveEvaluation(selectedLesson)}
+                          disabled={loading}
+                        >
+                          {loading ? "Salvando..." : evaluations.some((item) => item.lesson_number === selectedLesson.lesson_number) ? "Substituir avaliação" : "Registrar avaliação"} →
+                        </button>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              )}
             </>
           )}
 
