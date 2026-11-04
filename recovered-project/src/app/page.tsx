@@ -681,7 +681,7 @@ export default function Home() {
         <section className="dashboard">
           <header>
             <div>
-              <small>PAINEL DO PROFESSOR</small>
+              <small>{profile.role === "diretor" || profile.role === "admin" ? "PAINEL DO DIRETOR" : "PAINEL DO PROFESSOR"}</small>
               <h2>Olá, {profile.full_name || "Professor(a)"}!</h2>
               <p>
                 {profile.school_name} · {profile.segment} · Turma {profile.class_name}
