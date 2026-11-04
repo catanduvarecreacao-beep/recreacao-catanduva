@@ -250,22 +250,29 @@ export default function Home() {
   function getMaterialEmbedUrl(rawUrl: string) {
     try {
       const url = new URL(rawUrl);
-      const host = url.hostname.replace(/^www\\./, "");
-      if (host === "youtu.be") return `https://www.youtube-nocookie.com/embed/${url.pathname.slice(1)}`;
+      const host = url.hostname.replace("www.", "");
+      const pathParts = url.pathname.split("/").filter(Boolean);
+
+      if (host === "youtu.be" && pathParts[0]) {
+        return `https://www.youtube-nocookie.com/embed/${pathParts[0]}`;
+      }
       if (host.includes("youtube.com")) {
         const videoId = url.searchParams.get("v");
         if (url.pathname.startsWith("/embed/")) return rawUrl;
         if (videoId) return `https://www.youtube-nocookie.com/embed/${videoId}`;
       }
       if (host.includes("drive.google.com")) {
-        const fileId = url.pathname.match(/\\/file\\/d\\/([^/]+)/)?.[1];
+        const fileId = pathParts[0] === "file" && pathParts[1] === "d" ? pathParts[2] : null;
         if (fileId) return `https://drive.google.com/file/d/${fileId}/preview`;
       }
-      if (host === "docs.google.com" && /\\/(document|presentation|spreadsheets)\\/d\\//.test(url.pathname)) {
-        return rawUrl.replace(/\\/(edit|view)(\\?.*)?$/, "/preview");
+      if (host === "docs.google.com" && ["document", "presentation", "spreadsheets"].includes(pathParts[0])) {
+        if (url.pathname.endsWith("/edit") || url.pathname.endsWith("/view")) {
+          return url.origin + url.pathname.replace(/\/(edit|view)$/, "/preview");
+        }
+        return rawUrl;
       }
-      if (host.includes("vimeo.com") && /^\\/\\d+/.test(url.pathname)) {
-        return `https://player.vimeo.com/video/${url.pathname.slice(1)}`;
+      if (host.includes("vimeo.com") && pathParts[0] && /^\d+$/.test(pathParts[0])) {
+        return `https://player.vimeo.com/video/${pathParts[0]}`;
       }
       return rawUrl;
     } catch {
