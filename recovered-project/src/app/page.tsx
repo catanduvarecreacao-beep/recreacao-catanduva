@@ -65,6 +65,7 @@ type Evaluation = {
   lesson_rating: string;
   class_description: string | null;
   checked_at: string | null;
+  checked_by: string | null;
 };
 
 export default function Home() {
@@ -88,6 +89,8 @@ export default function Home() {
 
   const [directorSegment, setDirectorSegment] = useState("Jardim");
   const [directorBimester, setDirectorBimester] = useState(1);
+  const [directorClass, setDirectorClass] = useState("Todas");
+  const [directorStatus, setDirectorStatus] = useState<"todas" | "pendentes" | "conferidas">("todas");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -361,9 +364,55 @@ export default function Home() {
     }
 
     setEvaluations((data || []) as Evaluation[]);
+    setDirectorClass("Todas");
+    setDirectorStatus("todas");
     setView("director");
     setMessage("");
   }
+
+  async function confirmDirectorEvaluation(evaluation: Evaluation) {
+    if (!profile || !["diretor", "admin"].includes(profile.role) || evaluation.checked_at) return;
+
+    setLoading(true);
+    setMessage("");
+    const { data, error } = await supabase
+      .from("evaluations")
+      .update({
+        checked_by: profile.id,
+        checked_at: new Date().toISOString(),
+      })
+      .eq("id", evaluation.id)
+      .is("checked_at", null)
+      .select("*")
+      .maybeSingle();
+    setLoading(false);
+
+    if (error) {
+      setMessage("Não foi possível confirmar esta avaliação. Atualize a consulta e tente novamente.");
+      return;
+    }
+    if (!data) {
+      setMessage("Esta avaliação já foi conferida. A lista será atualizada.");
+      await loadDirectorEvaluations();
+      return;
+    }
+
+    setEvaluations((current) =>
+      current.map((item) => item.id === evaluation.id ? (data as Evaluation) : item),
+    );
+    setMessage("Avaliação confirmada com sucesso.");
+  }
+
+  const directorVisibleEvaluations = evaluations.filter((evaluation) => {
+    const classMatches = directorClass === "Todas" || evaluation.class_name === directorClass;
+    const statusMatches =
+      directorStatus === "todas" ||
+      (directorStatus === "pendentes" && !evaluation.checked_at) ||
+      (directorStatus === "conferidas" && !!evaluation.checked_at);
+    return classMatches && statusMatches;
+  });
+  const directorPendingCount = evaluations.filter((item) => !item.checked_at).length;
+  const directorCheckedCount = evaluations.filter((item) => !!item.checked_at).length;
 
   return (
     <main>
@@ -802,34 +851,100 @@ export default function Home() {
             </button>
           </header>
 
-          <div className="panel tableWrap">
-            <table>
+          <div className="directorSummary">
+            <article className="directorMetric directorMetricBlue">
+              <span>Total de avaliações</span>
+              <strong>{evaluations.length}</strong>
+              <small>Registros no filtro selecionado</small>
+            </article>
+            <article className="directorMetric directorMetricAmber">
+              <span>Aguardando conferência</span>
+              <strong>{directorPendingCount}</strong>
+              <small>Avaliações ainda pendentes</small>
+            </article>
+            <article className="directorMetric directorMetricGreen">
+              <span>Conferidas</span>
+              <strong>{directorCheckedCount}</strong>
+              <small>Confirmações registradas</small>
+            </article>
+          </div>
+
+          <div className="directorFilters">
+            <label>
+              Turma
+              <select value={directorClass} onChange={(event) => setDirectorClass(event.target.value)}>
+                <option value="Todas">Todas as turmas</option>
+                {CLASSES.map((item) => <option value={item} key={item}>Turma {item}</option>)}
+              </select>
+            </label>
+            <label>
+              Situação
+              <select
+                value={directorStatus}
+                onChange={(event) => setDirectorStatus(event.target.value as "todas" | "pendentes" | "conferidas")}
+              >
+                <option value="todas">Todas</option>
+                <option value="pendentes">Aguardando conferência</option>
+                <option value="conferidas">Conferidas</option>
+              </select>
+            </label>
+            <span className="directorResultCount">{directorVisibleEvaluations.length} registro(s)</span>
+          </div>
+
+          <div className="panel tableWrap directorTablePanel">
+            <table className="directorTable">
               <thead>
                 <tr>
-                  <th>Escola</th>
-                  <th>Segmento</th>
                   <th>Turma</th>
                   <th>Aula</th>
                   <th>Avaliação</th>
-                  <th>Observações</th>
-                  <th>Conferência</th>
+                  <th>Observações do professor</th>
+                  <th>Situação</th>
+                  <th>Ação</th>
                 </tr>
               </thead>
               <tbody>
-                {evaluations.map((evaluation) => (
+                {directorVisibleEvaluations.map((evaluation) => (
                   <tr key={evaluation.id}>
-                    <td>{evaluation.school_name}</td>
-                    <td>{evaluation.segment}</td>
-                    <td>{evaluation.class_name}</td>
+                    <td><strong className="classPill">Turma {evaluation.class_name}</strong></td>
                     <td>{evaluation.lesson_number}</td>
-                    <td>{evaluation.lesson_rating}</td>
-                    <td>{evaluation.class_description}</td>
-                    <td>{evaluation.checked_at ? "Conferida" : "Pendente"}</td>
+                    <td>
+                      <span className={evaluation.lesson_rating === "Boa" ? "ratingGood" : evaluation.lesson_rating === "Regular" ? "ratingRegular" : "ratingReview"}>
+                        {evaluation.lesson_rating}
+                      </span>
+                    </td>
+                    <td className="directorObservation">{evaluation.class_description?.trim() || "Sem observações registradas."}</td>
+                    <td>
+                      {evaluation.checked_at ? (
+                        <span className="statusChecked">✓ Conferida</span>
+                      ) : (
+                        <span className="statusWaiting">Aguardando</span>
+                      )}
+                      {evaluation.checked_at && (
+                        <small className="checkedDate">
+                          {new Date(evaluation.checked_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                        </small>
+                      )}
+                    </td>
+                    <td>
+                      {evaluation.checked_at ? (
+                        <span className="confirmedLabel">Conferência concluída</span>
+                      ) : (
+                        <button
+                          className="confirmEvaluation"
+                          onClick={() => void confirmDirectorEvaluation(evaluation)}
+                          disabled={loading}
+                        >
+                          {loading ? "Salvando..." : "Confirmar"}
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            {!evaluations.length && <p>Nenhuma avaliação encontrada.</p>}
+            {!evaluations.length && <div className="directorEmpty"><strong>Nenhuma avaliação encontrada.</strong><span>Quando os professores registrarem avaliações deste segmento e bimestre, elas aparecerão aqui.</span></div>}
+            {!!evaluations.length && !directorVisibleEvaluations.length && <div className="directorEmpty"><strong>Nenhum resultado para estes filtros.</strong><span>Altere a turma ou a situação para visualizar outros registros.</span></div>}
           </div>
 
           <footer>
