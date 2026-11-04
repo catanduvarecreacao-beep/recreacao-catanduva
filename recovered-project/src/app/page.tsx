@@ -71,7 +71,7 @@ type Evaluation = {
 export default function Home() {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [view, setView] = useState<"home" | "login" | "signup" | "app" | "director">("home");
+  const [view, setView] = useState<"home" | "login" | "signup" | "directorSignup" | "app" | "director">("home");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -197,8 +197,9 @@ export default function Home() {
   async function registerAccount() {
     setMessage("");
 
-    if (!fullName.trim() || !school || !email.trim() || password.length < 6) {
-      setMessage("Preencha todos os campos. A senha deve ter pelo menos 6 caracteres.");
+    const isDirectorSignup = view === "directorSignup";
+    if (!fullName.trim() || !school || !email.trim() || password.length < 8) {
+      setMessage("Preencha todos os campos. A senha deve ter pelo menos 8 caracteres.");
       return;
     }
 
@@ -211,8 +212,9 @@ export default function Home() {
         data: {
           full_name: fullName.trim(),
           school_name: school,
-          segment,
-          class_name: className,
+          account_type: isDirectorSignup ? "director" : "teacher",
+          segment: isDirectorSignup ? null : segment,
+          class_name: isDirectorSignup ? null : className,
         },
       },
     });
@@ -221,7 +223,9 @@ export default function Home() {
     setMessage(
       error
         ? error.message
-        : "Cadastro solicitado! Confirme seu e-mail, se solicitado, e depois entre no sistema.",
+        : isDirectorSignup
+          ? "Cadastro de diretor solicitado! Confirme seu e-mail, se solicitado. Sua conta ficará vinculada à escola selecionada."
+          : "Cadastro solicitado! Confirme seu e-mail, se solicitado, e depois entre no sistema.",
     );
 
     if (!error) setView("login");
@@ -434,7 +438,7 @@ export default function Home() {
             className="director"
             onClick={() => {
               setView("login");
-              setMessage("Entre com uma conta autorizada para acessar a Área do Diretor.");
+              setMessage("Entre com seu e-mail e senha ou crie o cadastro de diretor da sua escola.");
             }}
           >
             Área do Diretor
@@ -530,7 +534,7 @@ export default function Home() {
         </>
       )}
 
-      {(view === "login" || view === "signup") && (
+      {(view === "login" || view === "signup" || view === "directorSignup") && (
         <section className="auth">
           <div className="authCard">
             <button
@@ -543,21 +547,25 @@ export default function Home() {
               ← Voltar ao início
             </button>
             <small>ACESSO SEGURO</small>
-            <h2>{view === "signup" ? "Criar conta de professor" : "Bem-vindo de volta!"}</h2>
+            <h2>
+              {view === "signup" ? "Criar conta de professor" : view === "directorSignup" ? "Cadastro do diretor" : "Bem-vindo de volta!"}
+            </h2>
             <p>
               {view === "signup"
                 ? "Vincule sua conta à escola, ao segmento e à sua turma."
-                : "Entre para acessar suas avaliações."}
+                : view === "directorSignup"
+                  ? "Cadastre-se com e-mail e senha para conferir as avaliações da sua escola."
+                  : "Entre para acessar suas avaliações."}
             </p>
 
             <form
               onSubmit={(event) => {
                 event.preventDefault();
-                if (view === "signup") void registerAccount();
+                if (view === "signup" || view === "directorSignup") void registerAccount();
                 else void signIn();
               }}
             >
-              {view === "signup" && (
+              {(view === "signup" || view === "directorSignup") && (
                 <>
                   <label>
                     Nome completo
@@ -579,7 +587,7 @@ export default function Home() {
                       ))}
                     </select>
                   </label>
-                  <div className="fields">
+                  {view === "signup" && <div className="fields">
                     <label>
                       Segmento
                       <select value={segment} onChange={(event) => setSegment(event.target.value)}>
@@ -600,7 +608,7 @@ export default function Home() {
                         ))}
                       </select>
                     </label>
-                  </div>
+                  </div>}
                 </>
               )}
 
@@ -618,30 +626,52 @@ export default function Home() {
                 Senha
                 <input
                   required
-                  minLength={6}
+                  minLength={8}
                   type="password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  placeholder="Mínimo de 6 caracteres"
+                  placeholder="Mínimo de 8 caracteres"
                 />
               </label>
               <button className="primary wide" disabled={loading}>
-                {loading ? "Aguarde..." : view === "signup" ? "Criar conta →" : "Entrar →"}
+                {loading ? "Aguarde..." : view === "signup" || view === "directorSignup" ? "Criar conta →" : "Entrar →"}
               </button>
             </form>
 
-            <button
-              className="switch"
-              onClick={() => {
-                setView(view === "signup" ? "login" : "signup");
-                setMessage("");
-              }}
-            >
-              {view === "signup" ? "Já tem conta? Entrar" : "Ainda não tem conta? Criar conta"}
-            </button>
+            {view !== "directorSignup" && (
+              <button
+                className="switch"
+                onClick={() => {
+                  setView(view === "signup" ? "login" : "signup");
+                  setMessage("");
+                }}
+              >
+                {view === "signup" ? "Já tem conta? Entrar" : "Ainda não tem conta? Criar conta de professor"}
+              </button>
+            )}
+            {view === "login" && (
+              <button
+                className="switch directorSignupLink"
+                onClick={() => {
+                  setView("directorSignup");
+                  setMessage("");
+                  setFullName("");
+                  setSchool("");
+                }}
+              >
+                Primeiro acesso como diretor? Cadastre sua escola →
+              </button>
+            )}
+            {view === "directorSignup" && (
+              <button className="switch" onClick={() => { setView("login"); setMessage(""); }}>
+                Já possui cadastro? Entrar
+              </button>
+            )}
             {message && <div className="notice">{message}</div>}
             <small className="note">
-              A Área do Diretor exige uma conta previamente autorizada pela administração.
+              {view === "directorSignup"
+                ? "Cada escola pode ter somente um cadastro de diretor. Quando a vaga da escola já estiver ocupada, um novo cadastro será recusado."
+                : "A conta de diretor é vinculada à escola selecionada e somente uma conta pode ocupar essa função por escola."}
             </small>
           </div>
         </section>
