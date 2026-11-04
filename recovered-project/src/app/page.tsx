@@ -102,6 +102,16 @@ export default function Home() {
     return () => data.subscription.unsubscribe();
   }, []);
 
+  // Permite fechar a janela do material pelo teclado.
+  useEffect(() => {
+    if (!selectedLesson) return;
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setSelectedLesson(null);
+    }
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [selectedLesson]);
+
   // Carrega o perfil associado à conta autenticada.
   useEffect(() => {
     let cancelled = false;
