@@ -100,3 +100,36 @@ body{background:#fff}
 @media(max-width:700px){.nav{height:auto;min-height:72px;padding:12px 16px;gap:8px}.nav>div{gap:2px}.nav>div button{font-size:11px;padding:8px 9px}.brand{font-size:15px!important}.brand i{width:33px;height:33px;padding:7px}.hero{min-height:auto;gap:16px;padding:55px 22px 65px}.heroText{max-width:580px}.hero h1{font-size:clamp(49px,12vw,66px);letter-spacing:-1.8px}.heroText>p{font-size:16px;line-height:1.65}.heroVisual{width:100%;height:350px;flex:auto;transform:none}.visualGlow{width:310px;height:310px}.activityCard{width:min(82%,320px);padding:18px}.activityIllustration{height:175px}.noteTop{top:26px;left:0}.noteBottom{right:0;bottom:25px}.homeHighlights{grid-template-columns:1fr;padding:48px 22px 58px;gap:13px}.highlightIntro{grid-column:auto;padding:0 0 8px}.highlightIntro h2{max-width:340px}.highlightCard{min-height:0;padding:19px}.highlightCard h3{margin-top:12px}}
 @media(max-width:390px){.nav{align-items:flex-start}.nav>div{flex-wrap:wrap}.heroVisual{height:320px}.floatingNote{font-size:10px;padding:9px 11px}.noteTop{left:-5px}.noteBottom{right:-5px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+
+/* Área do Diretor — conferência simples e rastreável */
+.directorSummary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:22px 0}
+.directorMetric{display:flex;flex-direction:column;gap:7px;padding:21px 23px;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:0 10px 28px rgba(29,67,91,.055)}
+.directorMetric>span{font-size:12px;font-weight:900;color:#657783}
+.directorMetric strong{font:600 36px Fredoka,sans-serif;color:#294456}
+.directorMetric small{font-size:11px;color:#82909a}
+.directorMetricBlue{border-top:4px solid #168bc1}
+.directorMetricAmber{border-top:4px solid #e9ad3e}
+.directorMetricGreen{border-top:4px solid #2a9b75}
+.directorFilters{display:flex;align-items:end;gap:16px;flex-wrap:wrap;padding:18px 20px;margin-bottom:16px;border:1px solid var(--line);border-radius:16px;background:#f9fcfe}
+.directorFilters label{display:flex;flex-direction:column;gap:7px;min-width:190px;margin:0;color:#536572;font-size:12px;font-weight:900}
+.directorFilters select{min-width:190px;padding:11px 13px;border:1px solid #dce5ec;border-radius:10px;background:#fff;color:#30343b}
+.directorResultCount{margin-left:auto;padding:10px 0;color:#6e7d87;font-size:12px;font-weight:900}
+.directorTablePanel{padding:0;overflow:auto}
+.directorTable{min-width:850px}
+.directorTable th{padding:15px 14px;background:#f2f8fc;color:#466477;font-size:11px;text-transform:uppercase;letter-spacing:.55px}
+.directorTable td{padding:15px 14px;vertical-align:middle}
+.classPill{display:inline-block;padding:7px 10px;border-radius:9px;background:#edf6fb;color:#075b89;white-space:nowrap}
+.ratingGood,.ratingRegular,.ratingReview,.statusChecked,.statusWaiting{display:inline-flex;align-items:center;padding:7px 10px;border-radius:999px;font-size:11px;font-weight:900;white-space:nowrap}
+.ratingGood,.statusChecked{color:#087653;background:#e3f6ee}
+.ratingRegular{color:#94630a;background:#fff3d8}
+.ratingReview,.statusWaiting{color:#a34e2d;background:#fff0e9}
+.directorObservation{max-width:330px;min-width:220px;color:#5d6c76;line-height:1.5;white-space:normal}
+.checkedDate{display:block;margin-top:6px;color:#82909a;font-size:10px}
+.confirmEvaluation{border:0;border-radius:10px;padding:10px 14px;background:linear-gradient(115deg,#0a8bc9,#075b89);color:#fff;font-size:12px;font-weight:900;box-shadow:0 6px 15px rgba(0,111,171,.16);white-space:nowrap;transition:transform .2s ease,box-shadow .2s ease}
+.confirmEvaluation:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 9px 19px rgba(0,111,171,.23)}
+.confirmEvaluation:disabled{opacity:.55;cursor:wait}
+.confirmedLabel{color:#16805e;font-size:11px;font-weight:900;white-space:nowrap}
+.directorEmpty{display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center;padding:42px 20px;color:#526b7b}
+.directorEmpty span{max-width:480px;color:#84919a;font-size:12px;line-height:1.6}
+@media(max-width:760px){.directorSummary{grid-template-columns:1fr;gap:10px}.directorMetric{padding:16px 18px}.directorMetric strong{font-size:30px}.directorFilters{align-items:stretch;flex-direction:column}.directorFilters label,.directorFilters select{width:100%;min-width:0}.directorResultCount{margin-left:0}}
