@@ -395,6 +395,7 @@ export default function Home() {
       </nav>
 
       {view === "home" && (
+        <>
         <section className="hero">
           <div className="heroText">
             <small>✦ EDUCAÇÃO INFANTIL • CATANDUVA</small>
@@ -477,6 +478,7 @@ export default function Home() {
             <p>O brincar como caminho para explorar, conviver e aprender.</p>
           </article>
         </section>
+        </>
       )}
 
       {(view === "login" || view === "signup") && (
