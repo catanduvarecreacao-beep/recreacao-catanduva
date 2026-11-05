@@ -407,6 +407,44 @@ export default function Home() {
     setMessage("Avaliação confirmada com sucesso.");
   }
 
+  async function confirmAllVisibleEvaluations() {
+    if (!profile || !["diretor", "admin"].includes(profile.role)) return;
+
+    const pending = directorVisibleEvaluations.filter((item) => !item.checked_at);
+    if (!pending.length) {
+      setMessage("Não há avaliações pendentes para conferir neste filtro.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Deseja conferir todas as ${pending.length} avaliações pendentes que estão sendo exibidas?`,
+    );
+    if (!confirmed) return;
+
+    setLoading(true);
+    setMessage("");
+    const ids = pending.map((item) => item.id);
+    const { data, error } = await supabase
+      .from("evaluations")
+      .update({
+        checked_by: profile.id,
+        checked_at: new Date().toISOString(),
+      })
+      .in("id", ids)
+      .is("checked_at", null)
+      .select("*");
+    setLoading(false);
+
+    if (error) {
+      setMessage("Não foi possível conferir todas as avaliações. Atualize a lista e tente novamente.");
+      return;
+    }
+
+    const updatedById = new Map((data || []).map((item) => [item.id, item as Evaluation]));
+    setEvaluations((current) => current.map((item) => updatedById.get(item.id) || item));
+    setMessage(`${(data || []).length} avaliação(ões) conferida(s) com sucesso.`);
+  }
+
   const directorVisibleEvaluations = evaluations.filter((evaluation) => {
     const classMatches = directorClass === "Todas" || evaluation.class_name === directorClass;
     const statusMatches =
@@ -876,9 +914,21 @@ export default function Home() {
                 {profile.school_name} · {directorSegment} · {directorBimester}º bimestre
               </p>
             </div>
-            <button className="secondary" onClick={() => setView("app")}>
-              Voltar ao painel
-            </button>
+            <div className="directorHeaderActions">
+              <button className="secondary" onClick={() => window.print()}>
+                Imprimir avaliações
+              </button>
+              <button
+                className="primary"
+                onClick={() => void confirmAllVisibleEvaluations()}
+                disabled={loading || !directorVisibleEvaluations.some((item) => !item.checked_at)}
+              >
+                {loading ? "Aguarde..." : "Conferir todas"}
+              </button>
+              <button className="secondary" onClick={() => setView("app")}>
+                Voltar ao painel
+              </button>
+            </div>
           </header>
 
           <div className="directorSummary">
