@@ -738,11 +738,16 @@ export default function Home() {
                 <label>
                   Segmento
                   <select
+                    className={`directorSegmentSelect directorSegment${SEGMENTS.indexOf(directorSegment) + 1}`}
                     value={directorSegment}
                     onChange={(event) => setDirectorSegment(event.target.value)}
                   >
-                    {SEGMENTS.map((item) => (
-                      <option value={item} key={item}>
+                    {SEGMENTS.map((item, index) => (
+                      <option
+                        className={`directorSegmentOption directorSegmentOption${index + 1}`}
+                        value={item}
+                        key={item}
+                      >
                         {item}
                       </option>
                     ))}
