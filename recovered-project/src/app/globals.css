@@ -159,3 +159,26 @@ body{background:#fff}
   .classPill,.ratingGood,.ratingRegular,.ratingReview,.statusChecked,.statusWaiting{padding:3px 5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .directorTable tr{break-inside:avoid}
 }
+
+
+/* Seletor de segmento do painel inicial do diretor */
+.directorSegmentSelect{
+  min-height:46px;
+  padding:11px 14px!important;
+  font-size:16px!important;
+  font-weight:800;
+  letter-spacing:.1px;
+  border-width:1.5px!important;
+  transition:background .2s ease,border-color .2s ease,color .2s ease;
+}
+.directorSegmentSelect option{
+  font-size:16px;
+  font-weight:700;
+  padding:10px;
+}
+.directorSegmentSelect option.directorSegmentOption1{color:#075b89;background:#e8f5fc}
+.directorSegmentSelect option.directorSegmentOption2{color:#a84d22;background:#fff0e8}
+.directorSegmentSelect option.directorSegmentOption3{color:#6541a5;background:#f1ebff}
+.directorSegmentSelect.directorSegment1{color:#075b89!important;background:#e8f5fc!important;border-color:#91cce8!important}
+.directorSegmentSelect.directorSegment2{color:#a84d22!important;background:#fff0e8!important;border-color:#f2b99e!important}
+.directorSegmentSelect.directorSegment3{color:#6541a5!important;background:#f1ebff!important;border-color:#c7b4ed!important}
