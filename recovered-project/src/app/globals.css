@@ -133,3 +133,29 @@ body{background:#fff}
 .directorEmpty{display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center;padding:42px 20px;color:#526b7b}
 .directorEmpty span{max-width:480px;color:#84919a;font-size:12px;line-height:1.6}
 @media(max-width:760px){.directorSummary{grid-template-columns:1fr;gap:10px}.directorMetric{padding:16px 18px}.directorMetric strong{font-size:30px}.directorFilters{align-items:stretch;flex-direction:column}.directorFilters label,.directorFilters select{width:100%;min-width:0}.directorResultCount{margin-left:0}}
+
+
+/* Ações e impressão do painel do diretor */
+.directorHeaderActions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+@media(max-width:760px){.directorHeaderActions{width:100%;justify-content:flex-start}.directorHeaderActions button{flex:1}}
+@media print{
+  @page{size:A4 landscape;margin:14mm}
+  body{background:#fff!important;color:#172b38!important;font-size:10pt}
+  .nav,.directorHeaderActions,.directorFilters,.notice,.dashboard>footer{display:none!important}
+  .dashboard{max-width:none;min-height:0;margin:0;padding:0}
+  .dashboard header{display:block;margin:0 0 18px;padding:0 0 14px;border-bottom:2px solid #075b89}
+  .dashboard header:before{content:"RECREAÇÃO CATANDUVA  |  RELATÓRIO DE CONFERÊNCIA";display:block;margin-bottom:8px;color:#075b89;font-size:10pt;font-weight:900;letter-spacing:1.2px}
+  .dashboard header small{display:block;color:#526b7b!important}
+  .dashboard header h2{margin:5px 0;font-size:22pt}
+  .dashboard header p{margin:4px 0;color:#405461!important}
+  .directorSummary{grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+  .directorMetric{padding:10px 13px;box-shadow:none;break-inside:avoid}
+  .directorMetric strong{font-size:22pt}
+  .panel.directorTablePanel{overflow:visible;border:1px solid #cbd7df;box-shadow:none}
+  .directorTable{width:100%;min-width:0;font-size:8pt}
+  .directorTable th,.directorTable td{padding:7px 6px;border:1px solid #d8e1e7}
+  .directorTable th{background:#edf4f8!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .directorObservation{min-width:0;max-width:none}
+  .classPill,.ratingGood,.ratingRegular,.ratingReview,.statusChecked,.statusWaiting{padding:3px 5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .directorTable tr{break-inside:avoid}
+}
