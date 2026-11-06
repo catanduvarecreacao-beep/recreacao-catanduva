@@ -349,3 +349,31 @@ body{background:#fff}
 .creatorSpinner{width:20px;height:20px;border:3px solid #dcecf5;border-top-color:#087fbd;border-radius:50%;animation:creatorSpin .8s linear infinite}
 @keyframes creatorSpin{to{transform:rotate(360deg)}}
 @media(max-width:600px){.creatorPage{padding:22px 14px 48px}.creatorPreviewHeader{flex-direction:column}.creatorPreviewText{padding:15px;font-size:12px}.creatorPreviewActions{flex-direction:column}.creatorPreviewActions button{width:100%}}
+
+/* Relatório Individual — Educa I.A. */
+.reportPage{background:radial-gradient(ellipse at 7% 7%,#fff0e8 0,transparent 34%),radial-gradient(ellipse at 94% 25%,#e8f6fd 0,transparent 31%),#f9fbfd}
+.reportForm{max-width:900px;margin:0 auto}
+.reportSectionTitle{display:flex;align-items:center;gap:13px;padding-bottom:17px;margin:0 0 20px;border-bottom:1px solid #e8eef2}
+.reportSectionTitle>span{display:grid;place-items:center;width:38px;height:38px;flex:none;border-radius:12px;background:#fff0e8;color:#d96a36;font-size:12px;font-weight:900}
+.reportSectionTitle div{display:flex;flex-direction:column;gap:3px}
+.reportSectionTitle strong{color:#294456;font-size:15px}
+.reportSectionTitle small{color:#82919a;font-size:11px;font-weight:500;line-height:1.5}
+.reportFieldsGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}
+.reportFieldsGrid label{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;color:#405967;font-size:12px;font-weight:900}
+.reportFieldsGrid input,.reportFieldsGrid select{width:100%;min-height:47px;padding:11px 13px;border:1px solid #d9e5ec;border-radius:11px;background:#fbfdfe;color:#294456;font:inherit;font-size:13px;font-weight:500;outline:none}
+.reportFieldsGrid input:focus,.reportFieldsGrid select:focus,.reportTextField textarea:focus{border-color:#168bc1;box-shadow:0 0 0 3px #168bc11a;background:#fff}
+.reportPedagogyTitle{margin-top:18px}
+.reportTextField{display:flex;flex-direction:column;gap:9px;margin:0 0 19px;color:#405967;font-size:12px;font-weight:900}
+.reportTextField textarea{width:100%;min-height:105px;padding:13px 14px;border:1px solid #d9e5ec;border-radius:11px;background:#fbfdfe;color:#294456;font:inherit;font-size:12px;font-weight:500;line-height:1.65;resize:vertical;outline:none}
+.reportTextField textarea::placeholder{color:#9aa9b2}
+.reportPrivacyNote{display:flex;gap:12px;padding:14px 16px;margin:5px 0 20px;border:1px solid #f2e0d4;border-radius:12px;background:#fff9f5;color:#795e4d}
+.reportPrivacyNote>span{color:#dc814c;font-size:18px}
+.reportPrivacyNote p{margin:0;font-size:11px;line-height:1.7}
+.reportReadyTag{padding:7px 10px;border-radius:20px;background:#eaf7ef;color:#237648;font-size:11px;font-weight:900}
+.reportDocumentHeading{padding:18px 20px;margin:0 0 14px;border:1px solid #e7edf1;border-radius:12px;background:#fbfdfe;color:#3b5260}
+.reportDocumentHeading>strong{display:block;margin-bottom:10px;color:#075b89;text-align:center;font-size:13px}
+.reportDocumentHeading h3{margin:0 0 13px;color:#294456;text-align:center;font-size:14px;letter-spacing:.5px}
+.reportDocumentHeading p{margin:5px 0;font-size:11px}
+.reportPreviewText{white-space:pre-wrap;text-align:justify}
+.reportSuccess{margin-top:14px;color:#28764a;font-size:12px;font-weight:700}
+@media(max-width:600px){.reportFieldsGrid{grid-template-columns:1fr}.reportSectionTitle small{font-size:10px}.reportDocumentHeading{padding:15px}.reportReadyTag{align-self:flex-start}}
