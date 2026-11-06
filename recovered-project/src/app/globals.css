@@ -182,3 +182,24 @@ body{background:#fff}
 .directorSegmentSelect.directorSegment1{color:#075b89!important;background:#e8f5fc!important;border-color:#91cce8!important}
 .directorSegmentSelect.directorSegment2{color:#a84d22!important;background:#fff0e8!important;border-color:#f2b99e!important}
 .directorSegmentSelect.directorSegment3{color:#6541a5!important;background:#f1ebff!important;border-color:#c7b4ed!important}
+
+
+/* Cards coloridos para seleção de bimestre no painel do professor */
+.bimesterSection{border:1px solid var(--line);background:#fff;border-radius:20px;padding:20px;margin-bottom:22px;box-shadow:0 8px 24px #183d5608}
+.bimesterSectionHeading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
+.bimesterSectionHeading small{color:var(--deep);font-size:10px;letter-spacing:1.3px;font-weight:900}
+.bimesterSectionHeading h3{font:600 23px Fredoka,sans-serif;margin:4px 0 0;color:#30343b}
+.bimesterSectionHeading>b{font-size:13px;color:#68727c;background:#f3f8fb;padding:9px 12px;border-radius:10px}
+.bimesterCards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.bimesterCard{position:relative;min-height:130px;border:1px solid transparent;border-radius:16px;padding:15px;text-align:left;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.bimesterCard:hover{transform:translateY(-3px);box-shadow:0 10px 22px #1b35451a}
+.bimesterCard.active{outline:3px solid currentColor;outline-offset:2px;box-shadow:0 9px 24px #1b35451c}
+.bimesterCardNumber{font:700 34px/1 Fredoka,sans-serif}
+.bimesterCardLabel{font-size:14px;font-weight:900}
+.bimesterCardAction{font-size:11px;font-weight:800;opacity:.8;margin-top:7px}
+.bimesterCard1{background:#e7f4fc;color:#075b89;border-color:#b7dced}
+.bimesterCard2{background:#fff0e8;color:#a84d22;border-color:#f3c7b1}
+.bimesterCard3{background:#f1ebff;color:#6541a5;border-color:#d3c3f1}
+.bimesterCard4{background:#e8f7ef;color:#187447;border-color:#b8e3c9}
+@media(max-width:700px){.bimesterCards{grid-template-columns:repeat(2,minmax(0,1fr))}.bimesterCard{min-height:112px}}
+@media(max-width:420px){.bimesterSection{padding:15px}.bimesterSectionHeading{align-items:flex-start;flex-direction:column}.bimesterSectionHeading>b{font-size:12px}}
