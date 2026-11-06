@@ -3,7 +3,7 @@ import { AlignmentType, BorderStyle, Document, Footer, HeadingLevel, PageNumber,
 export const runtime = "nodejs";
 
 function safeFilename(value: string) {
-  return value.replace(/[\\\\/:*?"<>|]/g, "-").replace(/\\s+/g, " ").trim().slice(0, 90) || "Relatorio Individual";
+  return value.replace(/[\\/:*?"<>|]/g, "-").replace(/\s+/g, " ").trim().slice(0, 90) || "Relatorio Individual";
 }
 
 export async function POST(request: Request) {
@@ -21,9 +21,9 @@ export async function POST(request: Request) {
     }
 
     const filename = safeFilename(`Relatório Individual - ${studentName || "Aluno"}`);
-    const paragraphs = content.replace(/\\r/g, "").split("\\n").filter((line: string) => line.trim()).map((line: string) =>
+    const paragraphs = content.replace(/\r/g, "").split("\n").filter((line: string) => line.trim()).map((line: string) =>
       new Paragraph({
-        children: [new TextRun({ text: line.trim().replace(/\\*\\*/g, ""), font: "Arial", size: 23, color: "293D4A" })],
+        children: [new TextRun({ text: line.trim().replace(/\*\*/g, ""), font: "Arial", size: 23, color: "293D4A" })],
         alignment: AlignmentType.JUSTIFIED,
         spacing: { after: 180, line: 340 }
       })
