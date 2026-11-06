@@ -38,19 +38,34 @@ export default function CriadorAula({ onBack }: Props) {
     }
   }
 
-  function downloadWord() {
-    if (!preview) return;
-    const safe = (value: string) => value.replace(/[&<>"']/g, (char) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char] || char));
-    const html = `<!doctype html><html><head><meta charset="utf-8"><title>${safe(filename)}</title><style>body{font-family:Arial,sans-serif;color:#263746;line-height:1.6}h1{text-align:center;color:#075b89;font-size:20pt}h2{text-align:center;font-size:12pt}hr{border:0;border-top:1px solid #9aaab4;margin:18px 0}.meta{font-weight:bold;margin:7px 0}.content{white-space:pre-wrap;font-size:11pt}</style></head><body><h1>${safe(filename)}</h1><h2>PLANEJAMENTO PEDAGÓGICO</h2><hr><p class="meta">Tema: ${safe(theme)}</p><p class="meta">Faixa etária: ${safe(ageRange)}</p><p class="meta">Data: ${new Date().toLocaleDateString("pt-BR")}</p><hr><div class="content">${safe(preview)}</div><hr><p style="text-align:center;color:#666;font-size:9pt">Documento gerado pelo Educa I.A. — Recreação Catanduva</p></body></html>`;
-    const blob = new Blob(["\ufeff", html], { type: "application/msword;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `${filename.replace(/[\\/:*?"<>|]/g, "-")}.doc`;
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    URL.revokeObjectURL(url);
+  async function downloadWord() {
+    if (!preview || loading) return;
+    setError("");
+    setLoading(true);
+    try {
+      const response = await fetch("/api/educa/criador-aula/documento", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: preview, theme, ageRange, filename }),
+      });
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.error || "Não foi possível preparar o arquivo Word.");
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${filename.replace(/[\\\\/:*?"<>|]/g, "-")}.docx`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ocorreu um erro ao baixar o Word.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -87,7 +102,7 @@ export default function CriadorAula({ onBack }: Props) {
             </div>
             <div className="creatorPreviewText">{preview}</div>
             <div className="creatorPreviewActions">
-              <button className="creatorDownload" onClick={downloadWord}>↓ Baixar documento Word</button>
+              <button className="creatorDownload" onClick={downloadWord} disabled={loading}>{loading ? "Preparando arquivo..." : "↓ Baixar Word editável (.docx)"}</button>
               <button onClick={() => { setPreview(""); setError(""); }}>＋ Criar novo planejamento</button>
             </div>
           </div>
