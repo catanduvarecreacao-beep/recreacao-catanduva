@@ -773,24 +773,30 @@ export default function Home() {
             </div>
           ) : (
             <>
-              <div className="toolbar">
-                <label>
-                  Bimestre
-                  <select
-                    value={bimester}
-                    onChange={(event) => setBimester(Number(event.target.value))}
-                  >
-                    {BIMESTERS.map((item) => (
-                      <option value={item} key={item}>
-                        {item}º bimestre
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <b>
-                  {evaluations.length} de {lessons.length} aulas avaliadas
-                </b>
-              </div>
+              <section className="bimesterSection" aria-label="Escolha do bimestre">
+                <div className="bimesterSectionHeading">
+                  <div>
+                    <small>ORGANIZE SUAS AVALIAÇÕES</small>
+                    <h3>Escolha o bimestre</h3>
+                  </div>
+                  <b>{evaluations.length} de {lessons.length} aulas avaliadas</b>
+                </div>
+                <div className="bimesterCards">
+                  {BIMESTERS.map((item, index) => (
+                    <button
+                      type="button"
+                      key={item}
+                      className={`bimesterCard bimesterCard${index + 1}${bimester === item ? " active" : ""}`}
+                      onClick={() => setBimester(item)}
+                      aria-pressed={bimester === item}
+                    >
+                      <span className="bimesterCardNumber">{item}º</span>
+                      <span className="bimesterCardLabel">Bimestre</span>
+                      <span className="bimesterCardAction">{bimester === item ? "Selecionado" : "Clique para acessar"}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
 
               <div className="grid">
                 {lessons.map((lesson) => {
