@@ -377,3 +377,19 @@ body{background:#fff}
 .reportPreviewText{white-space:pre-wrap;text-align:justify}
 .reportSuccess{margin-top:14px;color:#28764a;font-size:12px;font-weight:700}
 @media(max-width:600px){.reportFieldsGrid{grid-template-columns:1fr}.reportSectionTitle small{font-size:10px}.reportDocumentHeading{padding:15px}.reportReadyTag{align-self:flex-start}}
+
+
+/* Plano Educacional Individualizado — Educa I.A. */
+.peiPage{background:radial-gradient(ellipse at 8% 5%,#f1ecfc 0,transparent 35%),radial-gradient(ellipse at 95% 25%,#e8f6fd 0,transparent 31%),#f9fbfd}
+.peiForm{max-width:980px;margin:0 auto}
+.peiForm .reportFieldsGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.peiForm .reportFieldsGrid label{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;color:#405967;font-size:12px;font-weight:900}
+.peiForm .reportFieldsGrid input,.peiForm .reportFieldsGrid select,.peiForm .reportFieldsGrid textarea{width:100%;min-height:47px;padding:11px 13px;border:1px solid #d9e5ec;border-radius:11px;background:#fbfdfe;color:#294456;font:inherit;font-size:13px;font-weight:500;outline:none}
+.peiForm .reportFieldsGrid textarea{resize:vertical;line-height:1.6}
+.peiForm .reportFieldsGrid input:focus,.peiForm .reportFieldsGrid select:focus,.peiForm .reportFieldsGrid textarea:focus{border-color:#168bc1;box-shadow:0 0 0 3px #168bc11a;background:#fff}
+.peiWide{grid-column:1/-1}
+.peiPrivacy{border-color:#e4d9f4;background:#faf7ff;color:#655579}
+.peiPrivacy>span{color:#7658b5}
+.peiPrivacy strong{color:#5c438f}
+.peiPreviewText{white-space:pre-wrap;text-align:justify}
+@media(max-width:600px){.peiForm .reportFieldsGrid{grid-template-columns:1fr}.peiWide{grid-column:auto}}
