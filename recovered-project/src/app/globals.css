@@ -235,3 +235,50 @@ body{background:#fff}
   .lesson h3{font-size:19px;margin-bottom:12px}
   .lesson .save{padding:12px;font-size:13px}
 }
+
+
+/* Progresso das aulas avaliadas abaixo dos cards de bimestre */
+.evaluationProgress{
+  margin-top:18px;
+  padding:15px 17px;
+  border:1px solid #dce8ef;
+  border-radius:14px;
+  background:#f8fbfd;
+}
+.evaluationProgressLabels{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:9px;
+  color:#344653;
+  font-size:13px;
+  font-weight:800;
+}
+.evaluationProgressLabels strong{
+  color:var(--deep);
+  font-size:15px;
+  font-variant-numeric:tabular-nums;
+}
+.evaluationProgressTrack{
+  height:11px;
+  overflow:hidden;
+  border-radius:999px;
+  background:#e3ebf0;
+}
+.evaluationProgressFill{
+  height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,#087bb8,#22a6a0);
+  transition:width .35s ease;
+}
+.evaluationProgress>small{
+  display:block;
+  margin-top:7px;
+  color:#687783;
+  font-size:11px;
+}
+@media(max-width:600px){
+  .evaluationProgress{margin-top:14px;padding:13px}
+  .evaluationProgressLabels{font-size:12px}
+}
