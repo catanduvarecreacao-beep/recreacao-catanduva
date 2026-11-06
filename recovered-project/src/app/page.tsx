@@ -1,5 +1,7 @@
 "use client";
 
+import CriadorAula from "./CriadorAula";
+
 import { useEffect, useState } from "react";
 import { createClient, type Session } from "@supabase/supabase-js";
 
@@ -71,7 +73,7 @@ type Evaluation = {
 export default function Home() {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [view, setView] = useState<"home" | "login" | "signup" | "directorSignup" | "app" | "director" | "educa">("home");
+  const [view, setView] = useState<"home" | "login" | "signup" | "directorSignup" | "app" | "director" | "educa" | "creator">("home");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -586,7 +588,7 @@ export default function Home() {
             <span>4 ferramentas</span>
           </div>
           <div className="educaToolsGrid">
-            <article className="educaToolCard educaToolBlue">
+            <article className="educaToolCard educaToolBlue" role="button" tabIndex={0} onClick={() => { setView("creator"); setMessage(""); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setView("creator"); setMessage(""); } }}>
               <div className="educaToolTop"><span className="educaToolIcon">✎</span><span className="educaToolNumber">01</span></div>
               <h3>Criador de Aula</h3>
               <p>Planeje aulas completas com propostas lúdicas, objetivos de aprendizagem, materiais e vivências adequadas à Educação Infantil.</p>
@@ -613,6 +615,12 @@ export default function Home() {
           </div>
           <div className="educaNote"><span>✦</span><p><strong>Educar com criatividade, planejar com inteligência.</strong><br/>Um espaço de apoio ao trabalho pedagógico, com o olhar humano sempre no centro.</p></div>
         </section>
+      )}
+
+      {view === "creator" && (
+        <CriadorAula
+          onBack={() => setView("educa")}
+        />
       )}
 
       {(view === "login" || view === "signup" || view === "directorSignup") && (
