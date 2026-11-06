@@ -320,3 +320,32 @@ body{background:#fff}
 .educaNote strong{color:#365364}
 @media(max-width:1000px){.educaToolsGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.educaToolCard{min-height:250px}}
 @media(max-width:600px){.educaPage{padding:26px 17px 48px}.educaHero{margin-bottom:35px}.educaHero .back{margin-bottom:24px}.educaHero>p{font-size:14px}.educaToolsHeading{align-items:flex-start;flex-direction:column;gap:10px}.educaToolsGrid{grid-template-columns:1fr;gap:13px}.educaToolCard{min-height:0;padding:20px}.educaToolTop{margin-bottom:15px}.educaToolCard p{margin-bottom:17px}.educaNote{align-items:flex-start;padding:15px}}
+
+
+/* Criador de Aula — ferramenta integrada ao Educa I.A. */
+.creatorPage{min-height:calc(100vh - 82px);padding:clamp(24px,5vw,64px) clamp(18px,7vw,110px) 72px;background:radial-gradient(ellipse at 8% 5%,#e8f6fd 0,transparent 34%),radial-gradient(ellipse at 95% 25%,#fff0e8 0,transparent 30%),#f8fbfd}
+.creatorShell{max-width:980px;margin:0 auto}
+.creatorBack{margin-bottom:25px}
+.creatorHeading{text-align:center;max-width:720px;margin:0 auto 32px}
+.creatorHeading small{color:#087fbd;font-size:10px;font-weight:900;letter-spacing:1.4px}
+.creatorHeading h1{margin:12px 0;color:#294456;font:600 clamp(36px,6vw,58px)/1.08 Fredoka,sans-serif}
+.creatorHeading h1 em{font-style:normal;color:#087fbd}
+.creatorHeading p{margin:0;color:#647783;font-size:14px;line-height:1.75}
+.creatorForm,.creatorPreview{padding:clamp(20px,4vw,34px);border:1px solid #e0ebf1;border-radius:22px;background:#fff;box-shadow:0 14px 40px rgba(29,67,91,.07)}
+.creatorForm label{display:flex;flex-direction:column;gap:9px;margin-bottom:20px;color:#405967;font-size:13px;font-weight:900}
+.creatorForm input,.creatorForm select{width:100%;min-height:48px;padding:12px 14px;border:1px solid #d9e5ec;border-radius:12px;background:#fbfdfe;color:#294456;font:inherit;font-weight:500;outline:none}
+.creatorForm input:focus,.creatorForm select:focus{border-color:#168bc1;box-shadow:0 0 0 3px #168bc11a}
+.creatorSubmit{width:100%;min-height:51px;border:0;border-radius:13px;background:linear-gradient(110deg,#087fbd,#075b89);color:#fff;font-size:14px;font-weight:900;box-shadow:0 9px 20px #087fbd2b}
+.creatorSubmit:disabled{opacity:.65;cursor:wait}
+.creatorError{margin-top:16px;padding:13px 15px;border:1px solid #f2c8b9;border-radius:12px;background:#fff3ee;color:#a34e2d;font-size:13px;line-height:1.55}
+.creatorPreviewHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:20px}
+.creatorPreviewHeader h2{margin:0;color:#294456;font:600 25px Fredoka,sans-serif}
+.creatorPreviewHeader p{margin:5px 0 0;color:#74838d;font-size:12px}
+.creatorPreviewText{max-height:62vh;overflow:auto;padding:22px;border:1px solid #e8eef2;border-radius:14px;background:#fcfdfe;color:#354b58;font-size:13px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere}
+.creatorPreviewActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.creatorPreviewActions button{min-height:44px;padding:10px 17px;border:1px solid #d9e5ec;border-radius:11px;background:#fff;color:#365364;font-size:12px;font-weight:900}
+.creatorPreviewActions .creatorDownload{border-color:#087fbd;background:#087fbd;color:#fff}
+.creatorLoading{display:flex;align-items:center;justify-content:center;gap:12px;padding:22px;color:#527080;font-size:13px;font-weight:800}
+.creatorSpinner{width:20px;height:20px;border:3px solid #dcecf5;border-top-color:#087fbd;border-radius:50%;animation:creatorSpin .8s linear infinite}
+@keyframes creatorSpin{to{transform:rotate(360deg)}}
+@media(max-width:600px){.creatorPage{padding:22px 14px 48px}.creatorPreviewHeader{flex-direction:column}.creatorPreviewText{padding:15px;font-size:12px}.creatorPreviewActions{flex-direction:column}.creatorPreviewActions button{width:100%}}
