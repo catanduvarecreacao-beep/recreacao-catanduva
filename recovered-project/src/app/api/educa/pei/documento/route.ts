@@ -38,6 +38,6 @@ export async function POST(request:Request){
      ...["Professor(a) responsável","Coordenação pedagógica","Responsável familiar"].map(label=>new Paragraph({text:label,alignment:AlignmentType.CENTER,spacing:{after:140}}))
     ]}]});
   const buffer=await Packer.toBuffer(doc);
-  return new Response(new Uint8Array(buffer),{headers:{"Content-Type":"application/vnd.openxmlformats-officedocument.wordprocessingml.document","Content-Disposition:`attachment; filename="pei.docx"; filename*=UTF-8''${encodeURIComponent("PEI_"+safe(student))}.docx`,"Cache-Control":"no-store"}});
+"Content-Disposition": `attachment; filename=\"pei.docx\"; filename*=UTF-8''${encodeURIComponent("PEI_"+safe(student))}.docx`,"Cache-Control":"no-store"}});
  }catch{return Response.json({error:"Ocorreu um erro ao montar o arquivo Word. Tente novamente."},{status:500});}
 }
