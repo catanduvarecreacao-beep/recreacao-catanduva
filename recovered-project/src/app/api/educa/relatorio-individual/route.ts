@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     }
     const reportPeriod = typeof body.reportPeriod === "string" ? body.reportPeriod : "";
     const reportDate = typeof body.reportDate === "string" ? body.reportDate : "";
-    if (!allowedPeriods.includes(reportPeriod) || (reportDate && !/^\\d{4}-\\d{2}-\\d{2}$/.test(reportDate))) {
+    if (!allowedPeriods.includes(reportPeriod) || (reportDate && !/^\d{4}-\d{2}-\d{2}$/.test(reportDate))) {
       return NextResponse.json({ error: "Confira a data e o período selecionado." }, { status: 400 });
     }
     if (![values.social, values.cognitive, values.language, values.motor].some(Boolean)) {
@@ -86,14 +86,14 @@ Orientações obrigatórias:
       return NextResponse.json({ error: `Falha ao gerar o relatório: ${message}` }, { status: response.status === 429 ? 429 : 502 });
     }
 
-    const text = data?.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text || "").join("\\n").trim();
+    const text = data?.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text || "").join("\n").trim();
     if (!text) return NextResponse.json({ error: "A IA não retornou um relatório. Revise os dados e tente novamente." }, { status: 502 });
 
     const cleanText = text
-      .replace(/^#{1,6}\\s+/gm, "")
-      .replace(/\\*\\*(.*?)\\*\\*/g, "$1")
+      .replace(/^#{1,6}\s+/gm, "")
+      .replace(/\*\*(.*?)\*\*/g, "$1")
       .replace(/__(.*?)__/g, "$1")
-      .replace(/\\n{3,}/g, "\\n\\n")
+      .replace(/\n{3,}/g, "\n\n")
       .trim();
 
     return NextResponse.json({ text: cleanText });
