@@ -2,6 +2,7 @@
 
 import CriadorAula from "./CriadorAula";
 import RelatorioIndividual from "./RelatorioIndividual";
+import PEI from "./PEI";
 
 import { useEffect, useState } from "react";
 import { createClient, type Session } from "@supabase/supabase-js";
@@ -74,7 +75,7 @@ type Evaluation = {
 export default function Home() {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [view, setView] = useState<"home" | "login" | "signup" | "directorSignup" | "app" | "director" | "educa" | "creator" | "individual">("home");
+  const [view, setView] = useState<"home" | "login" | "signup" | "directorSignup" | "app" | "director" | "educa" | "creator" | "individual" | "pei">("home");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -601,7 +602,7 @@ export default function Home() {
               <p>Organize observações e registros do desenvolvimento da criança em um relatório claro, cuidadoso e individualizado.</p>
               <div className="educaToolFooter"><span>Documentação pedagógica</span><span className="educaToolArrow">↗</span></div>
             </article>
-            <article className="educaToolCard educaToolPurple">
+            <article className="educaToolCard educaToolPurple" role="button" tabIndex={0} onClick={() => { setView("pei"); setMessage(""); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setView("pei"); setMessage(""); } }}>
               <div className="educaToolTop"><span className="educaToolIcon">♡</span><span className="educaToolNumber">03</span></div>
               <h3>P.E.I.</h3>
               <p>Estruture um Plano Educacional Individualizado considerando potencialidades, necessidades, estratégias e acompanhamento.</p>
@@ -626,6 +627,10 @@ export default function Home() {
 
       {view === "individual" && (
         <RelatorioIndividual onBack={() => setView("educa")} />
+      )}
+
+      {view === "pei" && (
+        <PEI onBack={() => setView("educa")} />
       )}
 
       {(view === "login" || view === "signup" || view === "directorSignup") && (
