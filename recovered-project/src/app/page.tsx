@@ -71,7 +71,7 @@ type Evaluation = {
 export default function Home() {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [view, setView] = useState<"home" | "login" | "signup" | "directorSignup" | "app" | "director">("home");
+  const [view, setView] = useState<"home" | "login" | "signup" | "directorSignup" | "app" | "director" | "educa">("home");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -464,6 +464,7 @@ export default function Home() {
         </button>
         <div>
           <button onClick={() => setView("home")}>Início</button>
+          <button className="educaNav" onClick={() => { setView("educa"); setMessage(""); }}>Educa I.A.</button>
           <button
             onClick={() => {
               setView("login");
@@ -570,6 +571,48 @@ export default function Home() {
           </article>
         </section>
         </>
+      )}
+
+      {view === "educa" && (
+        <section className="educaPage">
+          <div className="educaHero">
+            <button className="back" onClick={() => setView("home")}>← Voltar ao início</button>
+            <div className="educaEyebrow"><span>✦</span> INTELIGÊNCIA ARTIFICIAL NA EDUCAÇÃO</div>
+            <h1>Educa <em>I.A.</em></h1>
+            <p>Ferramentas inteligentes para apoiar o planejamento, a documentação pedagógica e o desenvolvimento de experiências de aprendizagem.</p>
+          </div>
+          <div className="educaToolsHeading">
+            <div><small>ESPAÇO DE FERRAMENTAS</small><h2>O que vamos criar hoje?</h2></div>
+            <span>4 ferramentas</span>
+          </div>
+          <div className="educaToolsGrid">
+            <article className="educaToolCard educaToolBlue">
+              <div className="educaToolTop"><span className="educaToolIcon">✎</span><span className="educaToolNumber">01</span></div>
+              <h3>Criador de Aula</h3>
+              <p>Planeje aulas completas com propostas lúdicas, objetivos de aprendizagem, materiais e vivências adequadas à Educação Infantil.</p>
+              <div className="educaToolFooter"><span>Planejamento pedagógico</span><span className="educaToolArrow">↗</span></div>
+            </article>
+            <article className="educaToolCard educaToolOrange">
+              <div className="educaToolTop"><span className="educaToolIcon">▤</span><span className="educaToolNumber">02</span></div>
+              <h3>Relatório Individual</h3>
+              <p>Organize observações e registros do desenvolvimento da criança em um relatório claro, cuidadoso e individualizado.</p>
+              <div className="educaToolFooter"><span>Documentação pedagógica</span><span className="educaToolArrow">↗</span></div>
+            </article>
+            <article className="educaToolCard educaToolPurple">
+              <div className="educaToolTop"><span className="educaToolIcon">♡</span><span className="educaToolNumber">03</span></div>
+              <h3>P.E.I.</h3>
+              <p>Estruture um Plano Educacional Individualizado considerando potencialidades, necessidades, estratégias e acompanhamento.</p>
+              <div className="educaToolFooter"><span>Inclusão e acompanhamento</span><span className="educaToolArrow">↗</span></div>
+            </article>
+            <article className="educaToolCard educaToolGreen">
+              <div className="educaToolTop"><span className="educaToolIcon">✧</span><span className="educaToolNumber">04</span></div>
+              <h3>Projeto</h3>
+              <p>Desenvolva projetos pedagógicos com tema, justificativa, objetivos, etapas, experiências e formas de avaliação.</p>
+              <div className="educaToolFooter"><span>Projetos e experiências</span><span className="educaToolArrow">↗</span></div>
+            </article>
+          </div>
+          <div className="educaNote"><span>✦</span><p><strong>Educar com criatividade, planejar com inteligência.</strong><br/>Um espaço de apoio ao trabalho pedagógico, com o olhar humano sempre no centro.</p></div>
+        </section>
       )}
 
       {(view === "login" || view === "signup" || view === "directorSignup") && (
