@@ -812,11 +812,6 @@ export default function Home() {
                         </span>
                       </div>
                       <h3>{lesson.title || `Aula ${lesson.lesson_number}`}</h3>
-                      {!lesson.material_url && (
-                        <p className="lessonSummary">
-                          Esta aula ainda não possui material anexado. Você pode registrar a avaliação.
-                        </p>
-                      )}
                       <button className="save" onClick={() => setSelectedLesson(lesson)}>
                         {lesson.material_url ? "Abrir material e avaliar" : "Avaliar aula"} →
                       </button>
