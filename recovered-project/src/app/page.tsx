@@ -796,6 +796,26 @@ export default function Home() {
                     </button>
                   ))}
                 </div>
+                <div className="evaluationProgress" aria-label={`Progresso das aulas avaliadas: ${evaluations.length} de ${lessons.length}`}>
+                  <div className="evaluationProgressLabels">
+                    <span>Progresso das avaliações</span>
+                    <strong>{lessons.length ? Math.round((evaluations.length / lessons.length) * 100) : 0}%</strong>
+                  </div>
+                  <div
+                    className="evaluationProgressTrack"
+                    role="progressbar"
+                    aria-valuemin={0}
+                    aria-valuemax={lessons.length}
+                    aria-valuenow={evaluations.length}
+                    aria-label="Aulas avaliadas"
+                  >
+                    <div
+                      className="evaluationProgressFill"
+                      style={{ width: `${lessons.length ? Math.min(100, (evaluations.length / lessons.length) * 100) : 0}%` }}
+                    />
+                  </div>
+                  <small>{evaluations.length} de {lessons.length} aulas avaliadas</small>
+                </div>
               </section>
 
               <div className="grid">
