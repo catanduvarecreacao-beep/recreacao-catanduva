@@ -393,3 +393,43 @@ body{background:#fff}
 .peiPrivacy strong{color:#5c438f}
 .peiPreviewText{white-space:pre-wrap;text-align:justify}
 @media(max-width:600px){.peiForm .reportFieldsGrid{grid-template-columns:1fr}.peiWide{grid-column:auto}}
+
+
+/* Homepage com vídeo de fundo e navegação para as áreas do portal */
+.homeVideoBackdrop{position:fixed;inset:0;z-index:0;overflow:hidden;background:#172d43;pointer-events:none}
+.homeVideoBackdrop video{width:100%;height:100%;object-fit:cover;object-position:center}
+.homeVideoShade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(9,30,49,.76) 0%,rgba(9,30,49,.38) 55%,rgba(9,30,49,.12) 100%),linear-gradient(0deg,rgba(9,30,49,.26),transparent 45%)}
+main{position:relative}
+.homeHero{z-index:1;min-height:calc(100svh - 82px);background:transparent!important;color:#fff}
+.homeHero:before,.homeHero:after{border-color:rgba(255,255,255,.16)}
+.homeHero .heroText{max-width:690px}
+.homeHero .hero small{color:#fff;border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.13);backdrop-filter:blur(10px)}
+.homeHero .hero h1,.homeHero h1{color:#fff;text-shadow:0 5px 24px rgba(0,0,0,.16)}
+.homeHero h1 em{background:linear-gradient(100deg,#ffd56c,#ff9c72);-webkit-background-clip:text;background-clip:text;color:transparent}
+.homeHero .heroText>p{color:rgba(255,255,255,.91);text-shadow:0 2px 12px rgba(0,0,0,.16)}
+.homeHero .foot{color:rgba(255,255,255,.9)}
+.homeHero .secondary{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.92)}
+.homeHero .heroVisual{filter:drop-shadow(0 20px 45px rgba(0,0,0,.18))}
+.homeHighlights{position:relative;z-index:1;background:#fff}
+.homeAccessSections{position:relative;z-index:1;padding:clamp(52px,7vw,92px) clamp(20px,8vw,130px);background:linear-gradient(180deg,#f7fbfe,#fff)}
+.homeAccessIntro{max-width:760px;margin:0 auto 34px;text-align:center}
+.homeAccessIntro small{color:#087fbd;font-size:10px;font-weight:900;letter-spacing:1.5px}
+.homeAccessIntro h2{margin:12px 0;color:#294456;font:600 clamp(29px,4vw,44px)/1.12 Fredoka,sans-serif}
+.homeAccessIntro h2 em{color:#ed714b;font-style:normal}
+.homeAccessIntro p{max-width:620px;margin:0 auto;color:#71818b;font-size:14px;line-height:1.7}
+.homeAccessGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;max-width:1200px;margin:0 auto}
+.homeAccessCard{position:relative;display:flex;min-height:270px;flex-direction:column;align-items:flex-start;padding:23px 21px;text-align:left;text-decoration:none;border:1px solid #e4edf2;border-radius:20px;background:#fff;color:#294456;box-shadow:0 12px 34px rgba(29,67,91,.06);transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
+.homeAccessCard:hover{transform:translateY(-7px);border-color:#c9e2ef;box-shadow:0 20px 42px rgba(29,67,91,.12)}
+.homeAccessIcon{display:grid;width:47px;height:47px;place-items:center;margin-bottom:18px;border-radius:15px;background:var(--access-soft);color:var(--access-color);font-size:23px}
+.homeAccessEyebrow{color:#84949e;font-size:9px;font-weight:900;letter-spacing:1.1px}
+.homeAccessCard strong{margin:7px 0 9px;color:#294456;font:600 21px Fredoka,sans-serif}
+.homeAccessCard small{color:#71818b;font-size:12px;line-height:1.7}
+.homeAccessCard>b{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;margin-top:auto;padding-top:17px;color:var(--access-color);font-size:11px}
+.homeAccessCard>b i{display:grid;width:29px;height:29px;place-items:center;border-radius:50%;background:var(--access-soft);font-size:16px;font-style:normal}
+.directorAccess{--access-color:#087fbd;--access-soft:#e8f6fd}
+.teacherAccess{--access-color:#e66b43;--access-soft:#fff0e9}
+.aiAccess{--access-color:#7658b5;--access-soft:#f1ecfc}
+.resourcesAccess{--access-color:#25845e;--access-soft:#e8f7ef}
+@media(max-width:1050px){.homeAccessGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.homeHero{gap:24px;padding-left:6vw;padding-right:6vw}}
+@media(max-width:700px){.homeHero{min-height:auto;padding:54px 22px 64px}.homeHero .heroText>p{color:#fff}.homeAccessSections{padding:48px 18px 58px}.homeAccessGrid{grid-template-columns:1fr;gap:12px}.homeAccessCard{min-height:0;padding:20px}.homeAccessCard>b{margin-top:18px}.homeVideoShade{background:linear-gradient(180deg,rgba(9,30,49,.65),rgba(9,30,49,.48))}}
+@media(prefers-reduced-motion:reduce){.homeVideoBackdrop video{display:none}.homeVideoBackdrop{background:#24445b url('/hero-poster.jpg') center/cover no-repeat}.homeVideoShade{background:rgba(9,30,49,.55)}}
