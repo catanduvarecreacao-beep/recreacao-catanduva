@@ -149,9 +149,9 @@ export default function Home() {
         return;
       }
 
-      easedTime += (targetTime - easedTime) * 0.22;
+      easedTime += (targetTime - easedTime) * 0.52;
       const now = performance.now();
-      if (now - lastSeekAt >= 45) {
+      if (now - lastSeekAt >= 24) {
         try {
           video.currentTime = clamp(easedTime / video.duration) * video.duration;
           lastSeekAt = now;
@@ -166,15 +166,15 @@ export default function Home() {
       const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
       const heroRect = hero.getBoundingClientRect();
       const heroProgress = clamp(-heroRect.top / Math.max(1, hero.offsetHeight - viewportHeight));
-      let progress = 0.5 * heroProgress;
+      let progress = 0.7 * heroProgress;
 
       const directorRect = director.getBoundingClientRect();
       const directorProgress = clamp((viewportHeight - directorRect.top) / (viewportHeight * 0.9));
-      if (directorProgress > 0) progress = 0.5 + 0.25 * directorProgress;
+      if (directorProgress > 0) progress = 0.7 + 0.2 * directorProgress;
 
       const aiRect = ai.getBoundingClientRect();
       const aiProgress = clamp((viewportHeight - aiRect.top) / (viewportHeight * 0.9));
-      if (aiProgress > 0) progress = 0.75 + 0.25 * aiProgress;
+      if (aiProgress > 0) progress = 0.9 + 0.1 * aiProgress;
 
       if (Number.isFinite(video.duration) && video.duration > 0) {
         targetTime = progress * video.duration;
