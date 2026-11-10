@@ -116,7 +116,7 @@ export default function Home() {
   const finalSectionRef = useRef<HTMLElement | null>(null);
   const heroTextRef = useRef<HTMLDivElement | null>(null);
 
-  // Sincroniza o quadro do vídeo com a posição real da rolagem.
+  // Reproduz a sincronização de vídeo do HTML de referência, capítulo por capítulo.
   useEffect(() => {
     if (view !== "home") return;
     const video = heroVideoRef.current;
@@ -127,91 +127,102 @@ export default function Home() {
     const heroText = heroTextRef.current;
     if (!video || !hero || !director || !ai || !finalSection || !heroText) return;
 
-    let targetTime = 0;
-    let frame = 0;
-    let lastSeekAt = 0;
-    const clamp = (value: number) => Math.min(1, Math.max(0, value));
+    // Respeita a preferência do sistema, como no HTML original.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const scheduleFrame = () => {
-      if (!frame) frame = window.requestAnimationFrame(renderFrame);
+    let currentTime = 0;
+    let animationFrame = 0;
+    let active = true;
+    const clamp = (value: number) => Math.min(Math.max(value, 0), 1);
+
+    // Mantém exatamente a divisão temporal do vídeo original:
+    // Hero (0–50%), Área do Diretor (50–75%) e Educa A.I (75–100%).
+    const chapters: Array<[HTMLElement, number, number]> = [
+      [hero, 0, 0.5],
+      [director, 0.5, 0.75],
+      [ai, 0.75, 1],
+    ];
+
+    const getTarget = () => {
+      let target = 0;
+      let heroProgress = 0;
+
+      chapters.forEach(([element, from, to], index) => {
+        const rect = element.getBoundingClientRect();
+        let progress: number;
+
+        if (index === 0) {
+          progress = clamp(-rect.top / Math.max(1, element.offsetHeight - window.innerHeight));
+          heroProgress = progress;
+          target = from + (to - from) * progress;
+        } else {
+          progress = clamp((window.innerHeight - rect.top) / (window.innerHeight * 0.9));
+          if (progress > 0) target = from + (to - from) * progress;
+        }
+      });
+
+      return { target, heroProgress };
     };
 
-    const renderFrame = () => {
-      frame = 0;
-      if (video.readyState < HTMLMediaElement.HAVE_METADATA || !Number.isFinite(video.duration) || video.duration <= 0) return;
-      // Aguarda o navegador concluir a busca atual; o evento seeked agenda o próximo quadro.
-      if (video.seeking) return;
+    const getCurrentSection = () => {
+      const midpoint = window.innerHeight / 2;
+      let current = "hero";
+      const sections: Array<[string, HTMLElement]> = [
+        ["hero", hero],
+        ["seg", director],
+        ["ia", ai],
+        ["fim", finalSection],
+      ];
+      sections.forEach(([name, element]) => {
+        if (element.getBoundingClientRect().top <= midpoint) current = name;
+      });
+      return current;
+    };
 
-      const now = performance.now();
-      if (now - lastSeekAt >= 32 && Math.abs(targetTime - video.currentTime) >= 0.04) {
-        try {
-          // Busca diretamente o ponto correspondente à rolagem, sem interpolação que atrase a transição.
-          video.currentTime = clamp(targetTime / video.duration) * video.duration;
-          lastSeekAt = now;
-        } catch {
-          // O navegador pode ainda não ter disponibilizado o intervalo para busca.
+    const render = () => {
+      if (!active) return;
+
+      const { target, heroProgress } = getTarget();
+      if (video.duration && Number.isFinite(video.duration)) {
+        const destination = target * video.duration;
+        // Mesma suavização do HTML fornecido: evita saltos bruscos entre quadros.
+        currentTime += (destination - currentTime) * 0.12;
+        if (Math.abs(destination - currentTime) > 0.01 && !video.seeking) {
+          try {
+            video.currentTime = clamp(currentTime / video.duration) * video.duration;
+          } catch {
+            // Alguns navegadores ainda podem não ter liberado o intervalo para busca.
+          }
         }
       }
-    };
 
-    const syncToScroll = () => {
-      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-      const heroRect = hero.getBoundingClientRect();
-      const heroProgress = clamp(-heroRect.top / Math.max(1, hero.offsetHeight - viewportHeight));
-      let progress = 0.7 * heroProgress;
+      heroText.style.opacity = String(
+        heroProgress > 0.7 ? Math.max(0, 1 - (heroProgress - 0.7) / 0.2) : 1,
+      );
 
-      const directorRect = director.getBoundingClientRect();
-      const directorProgress = clamp((viewportHeight - directorRect.top) / (viewportHeight * 0.9));
-      if (directorProgress > 0) progress = 0.7 + 0.2 * directorProgress;
-
-      const aiRect = ai.getBoundingClientRect();
-      const aiProgress = clamp((viewportHeight - aiRect.top) / (viewportHeight * 0.9));
-      if (aiProgress > 0) progress = 0.9 + 0.1 * aiProgress;
-
-      if (Number.isFinite(video.duration) && video.duration > 0) {
-        targetTime = progress * video.duration;
-        scheduleFrame();
-      }
-
-      heroText.style.opacity = heroProgress > 0.7
-        ? String(Math.max(0, 1 - (heroProgress - 0.7) / 0.2))
-        : "1";
-
-      const sections: Array<[string, HTMLElement]> = [
-        ["hero", hero], ["seg", director], ["ia", ai], ["fim", finalSection],
-      ];
-      let active = "hero";
-      sections.forEach(([name, element]) => {
-        if (element.getBoundingClientRect().top <= viewportHeight / 2) active = name;
-      });
-      if (document.body.dataset.cap !== active) document.body.dataset.cap = active;
+      const section = getCurrentSection();
+      if (document.body.dataset.cap !== section) document.body.dataset.cap = section;
+      animationFrame = window.requestAnimationFrame(render);
     };
 
     const onMetadata = () => {
       video.pause();
-      syncToScroll();
+      if (!animationFrame) animationFrame = window.requestAnimationFrame(render);
     };
-    const onSeeked = () => scheduleFrame();
     const unlockForSafari = () => {
       video.play().then(() => video.pause()).catch(() => undefined);
     };
 
     video.pause();
     video.addEventListener("loadedmetadata", onMetadata);
-    video.addEventListener("seeked", onSeeked);
-    window.addEventListener("scroll", syncToScroll, { passive: true });
-    window.addEventListener("resize", syncToScroll);
     window.addEventListener("touchstart", unlockForSafari, { once: true, passive: true });
-
     if (video.readyState >= HTMLMediaElement.HAVE_METADATA) onMetadata();
     else video.load();
 
     return () => {
-      if (frame) window.cancelAnimationFrame(frame);
+      active = false;
+      if (animationFrame) window.cancelAnimationFrame(animationFrame);
       video.removeEventListener("loadedmetadata", onMetadata);
-      video.removeEventListener("seeked", onSeeked);
-      window.removeEventListener("scroll", syncToScroll);
-      window.removeEventListener("resize", syncToScroll);
       window.removeEventListener("touchstart", unlockForSafari);
       delete document.body.dataset.cap;
     };
