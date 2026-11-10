@@ -110,37 +110,45 @@ export default function Home() {
     return () => data.subscription.unsubscribe();
   }, []);
 
-  // Sincroniza o avanço e o retrocesso do vídeo do Hero com a rolagem da página.
+  const heroSectionRef = useRef<HTMLElement | null>(null);
+  const directorSectionRef = useRef<HTMLElement | null>(null);
+  const aiSectionRef = useRef<HTMLElement | null>(null);
+  const finalSectionRef = useRef<HTMLElement | null>(null);
+  const heroTextRef = useRef<HTMLDivElement | null>(null);
+
+  // Mapeamento do vídeo por capítulos, com a mesma suavização do HTML de referência.
   useEffect(() => {
     if (view !== "home") return;
-    const video = heroVideoRef.current;
-    if (!video) return;
-
-    let frame = 0;
-    const syncVideoToScroll = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        if (!Number.isFinite(video.duration) || video.duration <= 0) return;
-        const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-        const progress = Math.min(1, Math.max(0, window.scrollY / maxScroll));
-        const targetTime = progress * Math.max(0, video.duration - 0.04);
-        if (Math.abs(video.currentTime - targetTime) > 0.025) video.currentTime = targetTime;
+    const video=heroVideoRef.current, hero=heroSectionRef.current, director=directorSectionRef.current;
+    const ai=aiSectionRef.current, finalSection=finalSectionRef.current, heroText=heroTextRef.current;
+    if(!video||!hero||!director||!ai||!finalSection||!heroText)return;
+    if(window.matchMedia("(prefers-reduced-motion: reduce)").matches){video.pause();return;}
+    let currentTime=0, frame=0;
+    const clamp=(v:number)=>Math.min(Math.max(v,0),1);
+    const chapters:Array<[HTMLElement,number,number]>=[[hero,0,.5],[director,.5,.75],[ai,.75,1]];
+    const animate=()=>{
+      let target=0, heroProgress=0;
+      chapters.forEach(([section,from,to],index)=>{
+        const rect=section.getBoundingClientRect();
+        const progress=index===0?clamp(-rect.top/Math.max(1,section.offsetHeight-window.innerHeight)):clamp((window.innerHeight-rect.top)/(window.innerHeight*.9));
+        if(index===0)heroProgress=progress;
+        if(index===0||progress>0)target=from+(to-from)*progress;
       });
+      if(Number.isFinite(video.duration)&&video.duration>0){
+        const destination=target*video.duration;
+        currentTime+=(destination-currentTime)*.12;
+        if(Math.abs(destination-currentTime)>.01){try{video.currentTime=currentTime;}catch{/* aguarda quadro-chave */}}
+      }
+      heroText.style.opacity=heroProgress>.7?String(Math.max(0,1-(heroProgress-.7)/.2)):"1";
+      const sections:Array<[string,HTMLElement]>=[["hero",hero],["seg",director],["ia",ai],["fim",finalSection]];
+      let active="hero";sections.forEach(([name,element])=>{if(element.getBoundingClientRect().top<=window.innerHeight/2)active=name;});
+      if(document.body.dataset.cap!==active)document.body.dataset.cap=active;
+      frame=requestAnimationFrame(animate);
     };
-
-    video.pause();
-    video.addEventListener("loadedmetadata", syncVideoToScroll);
-    window.addEventListener("scroll", syncVideoToScroll, { passive: true });
-    window.addEventListener("resize", syncVideoToScroll);
-    syncVideoToScroll();
-
-    return () => {
-      cancelAnimationFrame(frame);
-      video.removeEventListener("loadedmetadata", syncVideoToScroll);
-      window.removeEventListener("scroll", syncVideoToScroll);
-      window.removeEventListener("resize", syncVideoToScroll);
-    };
-  }, [view]);
+    video.pause();const onMetadata=()=>video.pause();video.addEventListener("loadedmetadata",onMetadata);
+    frame=requestAnimationFrame(animate);
+    return()=>{cancelAnimationFrame(frame);video.removeEventListener("loadedmetadata",onMetadata);delete document.body.dataset.cap;};
+  },[view]);
 
   // Permite fechar a janela do material pelo teclado.
   useEffect(() => {
@@ -495,324 +503,64 @@ export default function Home() {
 
   return (
     <main>
-      <nav className="nav">
-        <button className="brand" onClick={() => setView("home")}>
-          <i>RC</i> Recreação <b>Catanduva</b>
-        </button>
-        <div>
-          <button onClick={() => setView("home")}>Início</button>
-          <button className="educaNav" onClick={() => { setView("educa"); setMessage(""); }}>Educa I.A.</button>
-          <button
-            onClick={() => {
-              setView("login");
-              setMessage("");
-            }}
-          >
-            Área do Professor
-          </button>
-          <button
-            className="director"
-            onClick={() => {
-              setView("login");
-              setMessage("Entre com seu e-mail e senha ou crie o cadastro de diretor da sua escola.");
-            }}
-          >
-            Área do Diretor
-          </button>
-          {session && <button onClick={signOut}>Sair</button>}
-        </div>
-      </nav>
-
-      {view === "home" && (
-        <>
-        <div className="homeVideoBackdrop" aria-hidden="true">
-          <video ref={heroVideoRef} muted playsInline preload="auto" poster="/hero-poster.jpg" aria-label="Vídeo de fundo do Hero sincronizado com a rolagem">
-            <source src="/hero.mp4" type="video/mp4" />
-          </video>
-          <div className="homeVideoShade" />
-        </div>
-        <section className="hero homeHero">
-          <div className="heroText">
-            <small>✦ EDUCAÇÃO INFANTIL • CATANDUVA</small>
-            <h1>
-              Recreação <em>Catanduva</em>
-            </h1>
-            <p>
-              Transformamos momentos em memórias, aprendizado, alegria e sorrisos através de
-              atividades lúdicas, promovendo o desenvolvimento infantil com muito carinho.
-            </p>
-            <div className="actions">
-              <button
-                className="primary"
-                onClick={() => {
-                  setView("login");
-                  setMessage("");
-                }}
-              >
-                Acessar o sistema →
-              </button>
-              <button
-                className="secondary"
-                onClick={() => {
-                  setView("signup");
-                  setMessage("");
-                }}
-              >
-                Criar conta de professor
-              </button>
+      {view === "home" ? (
+        <div className="referenceHome">
+          <div className="referenceVideo" aria-hidden="true">
+            <video ref={heroVideoRef} muted playsInline preload="auto" poster="/hero-poster.jpg" aria-label="Vídeo de fundo controlado pela rolagem">
+              <source src="/hero.mp4" type="video/mp4" />
+            </video>
+          </div>
+          <header className="topo">
+            <a className="marca" href="#hero">Recreação Catanduva</a>
+            <nav aria-label="Navegação principal"><ul className="menu">
+              <li><a href="#segmentos">Área do diretor</a></li>
+              <li><a href="#educa-ai">Educa A.I</a></li>
+              <li><a href="https://sites.google.com/view/recreacaocatanduva/recursos-digitais" target="_blank" rel="noreferrer">Recursos Digitais</a></li>
+            </ul></nav>
+          </header>
+          <section id="hero" ref={heroSectionRef} aria-label="Apresentação"><div className="palco">
+            <div className="texto" id="texto" ref={heroTextRef}>
+              <h1><span className="pal">Recreação</span><span className="pal">Catanduva</span></h1>
+              <p>Por professores. Para professores.</p>
+              <button className="botao" onClick={()=>{setView("login");setMessage("");window.scrollTo({top:0,behavior:"instant"});}}>Área do professor</button>
             </div>
-            <label className="foot">✓ Avaliações organizadas por escola, segmento e turma</label>
+          </div></section>
+          <section className="bloco" id="segmentos" ref={directorSectionRef}>
+            <h2>Área do diretor</h2><p className="intro">Acesse a área restrita da direção.</p>
+            <button className="botao grande" onClick={()=>{setView("login");setMessage("Entre com seu e-mail e senha ou crie o cadastro de diretor da sua escola.");window.scrollTo({top:0,behavior:"instant"});}}>Acessar área do diretor</button>
+          </section>
+          <section className="bloco ia" id="educa-ai" ref={aiSectionRef}><div className="painel">
+            <h2>Educa A.I</h2><p className="intro">Ferramentas com inteligência artificial para o planejamento do professor.</p>
+            <ul className="ferramentas">
+              <li><a href="#educa-ai" onClick={e=>{e.preventDefault();setView("creator");window.scrollTo({top:0,behavior:"instant"});}}>Criador de Aula</a></li>
+              <li><a href="#educa-ai" onClick={e=>{e.preventDefault();setView("individual");window.scrollTo({top:0,behavior:"instant"});}}>Relatório Individual</a></li>
+              <li><a href="#educa-ai" onClick={e=>{e.preventDefault();setView("pei");window.scrollTo({top:0,behavior:"instant"});}}>P.E.I</a></li>
+              <li><a href="#educa-ai" onClick={e=>{e.preventDefault();setView("educa");window.scrollTo({top:0,behavior:"instant"});}}>Projeto</a></li>
+            </ul>
+          </div></section>
+          <section className="bloco" id="fim" ref={finalSectionRef}><div className="extras">
+            <a href="https://sites.google.com/view/recreacaocatanduva/recursos-digitais" target="_blank" rel="noreferrer"><strong>Recursos Digitais</strong>Acessar os recursos</a>
+          </div></section>
+          <footer className="referenceFooter"><p>Por professores. Para professores.</p><ul>
+            <li><a href="https://sites.google.com/view/recreacaocatanduva/propriedade-intelectual-e-termos-de-uso" target="_blank" rel="noreferrer">Propriedade Intelectual e Termos de Uso</a></li>
+            <li><a href="https://sites.google.com/view/recreacaocatanduva/backuppr%C3%A9-2antigo/protocolo-%C3%A9tico-para-uso-de-intelig%C3%AAncia-artificial" target="_blank" rel="noreferrer">Protocolo ético para uso de inteligência artificial</a></li>
+            <li><a href="https://sites.google.com/view/recreacaocatanduva/politicadeprotecaodedados" target="_blank" rel="noreferrer">Política de proteção de dados</a></li>
+            <li>Contato: <a href="mailto:catanduvarecreacao@gmail.com">catanduvarecreacao@gmail.com</a></li>
+          </ul></footer>
+        </div>
+      ) : (
+        <nav className="nav">
+          <button className="brand" onClick={()=>setView("home")}><i>RC</i> Recreação <b>Catanduva</b></button>
+          <div>
+            <button onClick={()=>setView("home")}>Início</button>
+            <button className="educaNav" onClick={()=>{setView("educa");setMessage("");}}>Educa I.A.</button>
+            <button onClick={()=>{setView("login");setMessage("");}}>Área do Professor</button>
+            <button className="director" onClick={()=>{setView("login");setMessage("Entre com seu e-mail e senha ou crie o cadastro de diretor da sua escola.");}}>Área do Diretor</button>
+            {session&&<button onClick={signOut}>Sair</button>}
           </div>
-          <div className="heroVisual" aria-label="Painel ilustrativo de atividades educativas">
-            <div className="visualGlow" />
-            <div className="floatingShape shapeOne">✦</div>
-            <div className="floatingShape shapeTwo">●</div>
-            <div className="activityCard">
-              <div className="activityCardTop">
-                <span className="activityIcon">✿</span>
-                <span className="activityTag">APRENDER BRINCANDO</span>
-              </div>
-              <div className="activityIllustration">
-                <div className="sunShape" />
-                <div className="rainbowShape"><i /><i /><i /></div>
-                <div className="ballShape ballBlue" />
-                <div className="ballShape ballOrange" />
-                <div className="blockShape blockYellow" />
-                <div className="blockShape blockPurple" />
-              </div>
-              <div className="activityCardBottom">
-                <div>
-                  <strong>Pequenas descobertas,</strong>
-                  <span>grandes possibilidades.</span>
-                </div>
-                <span className="arrowBubble">↗</span>
-              </div>
-            </div>
-            <div className="floatingNote noteTop"><span>✦</span> Criatividade</div>
-            <div className="floatingNote noteBottom"><span>♡</span> Cuidado em cada detalhe</div>
-          </div>
-        </section>
-        <section className="homeHighlights" aria-label="Nossos valores">
-          <div className="highlightIntro">
-            <small>NOSSO PROPÓSITO</small>
-            <h2>Um espaço para <em>crescer e descobrir.</em></h2>
-          </div>
-          <article className="highlightCard highlightBlue">
-            <span className="highlightIcon">✦</span>
-            <h3>Aprendizagem</h3>
-            <p>Experiências que despertam a curiosidade e valorizam cada descoberta.</p>
-          </article>
-          <article className="highlightCard highlightOrange">
-            <span className="highlightIcon">♡</span>
-            <h3>Acolhimento</h3>
-            <p>Um olhar atento e cuidadoso para respeitar o ritmo de cada criança.</p>
-          </article>
-          <article className="highlightCard highlightYellow">
-            <span className="highlightIcon">✿</span>
-            <h3>Brincadeira</h3>
-            <p>O brincar como caminho para explorar, conviver e aprender.</p>
-          </article>
-        </section>
-        <section className="homeAccessSections" aria-label="Acessos e ferramentas">
-          <div className="homeAccessIntro">
-            <small>RECREAÇÃO CATANDUVA</small>
-            <h2>Um ambiente completo para <em>educar, planejar e acompanhar.</em></h2>
-            <p>Encontre em um só lugar as ferramentas e os recursos que apoiam o trabalho pedagógico.</p>
-          </div>
-          <div className="homeAccessGrid">
-            <button className="homeAccessCard directorAccess" onClick={() => { setView("login"); setMessage("Entre com seu e-mail e senha ou crie o cadastro de diretor da sua escola."); }}>
-              <span className="homeAccessIcon">⌂</span><span className="homeAccessEyebrow">ACOMPANHAMENTO</span>
-              <strong>Área do Diretor</strong><small>Acesse as avaliações da escola, acompanhe os registros e realize as conferências.</small><b>Acessar área <i>↗</i></b>
-            </button>
-            <button className="homeAccessCard teacherAccess" onClick={() => { setView("login"); setMessage(""); }}>
-              <span className="homeAccessIcon">✎</span><span className="homeAccessEyebrow">REGISTROS PEDAGÓGICOS</span>
-              <strong>Área do Professor</strong><small>Registre as avaliações das aulas e acompanhe o progresso de cada bimestre.</small><b>Acessar sistema <i>↗</i></b>
-            </button>
-            <button className="homeAccessCard aiAccess" onClick={() => { setView("educa"); setMessage(""); }}>
-              <span className="homeAccessIcon">✧</span><span className="homeAccessEyebrow">INTELIGÊNCIA ARTIFICIAL</span>
-              <strong>Educa I.A.</strong><small>Crie aulas, relatórios individuais, planos educacionais e projetos pedagógicos.</small><b>Explorar ferramentas <i>↗</i></b>
-            </button>
-            <a className="homeAccessCard resourcesAccess" href="https://sites.google.com/view/recreacaocatanduva/recursos-digitais" target="_blank" rel="noreferrer">
-              <span className="homeAccessIcon">▦</span><span className="homeAccessEyebrow">MATERIAIS DE APOIO</span>
-              <strong>Recursos Digitais</strong><small>Encontre materiais e conteúdos de apoio para enriquecer as experiências de aprendizagem.</small><b>Ver recursos <i>↗</i></b>
-            </a>
-          </div>
-        </section>
-        </>
+        </nav>
       )}
-
-      {view === "educa" && (
-        <section className="educaPage">
-          <div className="educaHero">
-            <button className="back" onClick={() => setView("home")}>← Voltar ao início</button>
-            <div className="educaEyebrow"><span>✦</span> INTELIGÊNCIA ARTIFICIAL NA EDUCAÇÃO</div>
-            <h1>Educa <em>I.A.</em></h1>
-            <p>Ferramentas inteligentes para apoiar o planejamento, a documentação pedagógica e o desenvolvimento de experiências de aprendizagem.</p>
-          </div>
-          <div className="educaToolsHeading">
-            <div><small>ESPAÇO DE FERRAMENTAS</small><h2>O que vamos criar hoje?</h2></div>
-            <span>4 ferramentas</span>
-          </div>
-          <div className="educaToolsGrid">
-            <article className="educaToolCard educaToolBlue" role="button" tabIndex={0} onClick={() => { setView("creator"); setMessage(""); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setView("creator"); setMessage(""); } }}>
-              <div className="educaToolTop"><span className="educaToolIcon">✎</span><span className="educaToolNumber">01</span></div>
-              <h3>Criador de Aula</h3>
-              <p>Planeje aulas completas com propostas lúdicas, objetivos de aprendizagem, materiais e vivências adequadas à Educação Infantil.</p>
-              <div className="educaToolFooter"><span>Planejamento pedagógico</span><span className="educaToolArrow">↗</span></div>
-            </article>
-            <article className="educaToolCard educaToolOrange" role="button" tabIndex={0} onClick={() => { setView("individual"); setMessage(""); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setView("individual"); setMessage(""); } }}>
-              <div className="educaToolTop"><span className="educaToolIcon">▤</span><span className="educaToolNumber">02</span></div>
-              <h3>Relatório Individual</h3>
-              <p>Organize observações e registros do desenvolvimento da criança em um relatório claro, cuidadoso e individualizado.</p>
-              <div className="educaToolFooter"><span>Documentação pedagógica</span><span className="educaToolArrow">↗</span></div>
-            </article>
-            <article className="educaToolCard educaToolPurple" role="button" tabIndex={0} onClick={() => { setView("pei"); setMessage(""); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setView("pei"); setMessage(""); } }}>
-              <div className="educaToolTop"><span className="educaToolIcon">♡</span><span className="educaToolNumber">03</span></div>
-              <h3>P.E.I.</h3>
-              <p>Estruture um Plano Educacional Individualizado considerando potencialidades, necessidades, estratégias e acompanhamento.</p>
-              <div className="educaToolFooter"><span>Inclusão e acompanhamento</span><span className="educaToolArrow">↗</span></div>
-            </article>
-            <article className="educaToolCard educaToolGreen">
-              <div className="educaToolTop"><span className="educaToolIcon">✧</span><span className="educaToolNumber">04</span></div>
-              <h3>Projeto</h3>
-              <p>Desenvolva projetos pedagógicos com tema, justificativa, objetivos, etapas, experiências e formas de avaliação.</p>
-              <div className="educaToolFooter"><span>Projetos e experiências</span><span className="educaToolArrow">↗</span></div>
-            </article>
-          </div>
-          <div className="educaNote"><span>✦</span><p><strong>Educar com criatividade, planejar com inteligência.</strong><br/>Um espaço de apoio ao trabalho pedagógico, com o olhar humano sempre no centro.</p></div>
-        </section>
-      )}
-
-      {view === "creator" && (
-        <CriadorAula
-          onBack={() => setView("educa")}
-        />
-      )}
-
-      {view === "individual" && (
-        <RelatorioIndividual onBack={() => setView("educa")} />
-      )}
-
-      {view === "pei" && (
-        <PEI onBack={() => setView("educa")} />
-      )}
-
-      {(view === "login" || view === "signup" || view === "directorSignup") && (
-        <section className="auth">
-          <div className="authCard">
-            <button
-              className="back"
-              onClick={() => {
-                setView("home");
-                setMessage("");
-              }}
-            >
-              ← Voltar ao início
-            </button>
-            <small>ACESSO SEGURO</small>
-            <h2>
-              {view === "signup" ? "Criar conta de professor" : view === "directorSignup" ? "Cadastro do diretor" : "Bem-vindo de volta!"}
-            </h2>
-            <p>
-              {view === "signup"
-                ? "Vincule sua conta à escola, ao segmento e à sua turma."
-                : view === "directorSignup"
-                  ? "Cadastre-se com e-mail e senha para conferir as avaliações da sua escola."
-                  : "Entre para acessar suas avaliações."}
-            </p>
-
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (view === "signup" || view === "directorSignup") void registerAccount();
-                else void signIn();
-              }}
-            >
-              {(view === "signup" || view === "directorSignup") && (
-                <>
-                  <label>
-                    Nome completo
-                    <input
-                      required
-                      value={fullName}
-                      onChange={(event) => setFullName(event.target.value)}
-                      placeholder="Seu nome completo"
-                    />
-                  </label>
-                  <label>
-                    Escola
-                    <select required value={school} onChange={(event) => setSchool(event.target.value)}>
-                      <option value="">Selecione sua escola</option>
-                      {SCHOOLS.map((item) => (
-                        <option value={item} key={item}>
-                          {item}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  {view === "signup" && <div className="fields">
-                    <label>
-                      Segmento
-                      <select value={segment} onChange={(event) => setSegment(event.target.value)}>
-                        {SEGMENTS.map((item) => (
-                          <option value={item} key={item}>
-                            {item}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      Turma
-                      <select value={className} onChange={(event) => setClassName(event.target.value)}>
-                        {CLASSES.map((item) => (
-                          <option value={item} key={item}>
-                            {item}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>}
-                </>
-              )}
-
-              <label>
-                E-mail
-                <input
-                  required
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder="voce@escola.com.br"
-                />
-              </label>
-              <label>
-                Senha
-                <input
-                  required
-                  minLength={8}
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder="Mínimo de 8 caracteres"
-                />
-              </label>
-              <button className="primary wide" disabled={loading}>
-                {loading ? "Aguarde..." : view === "signup" || view === "directorSignup" ? "Criar conta →" : "Entrar →"}
-              </button>
-            </form>
-
-            {view !== "directorSignup" && (
-              <button
-                className="switch"
-                onClick={() => {
-                  setView(view === "signup" ? "login" : "signup");
-                  setMessage("");
-                }}
-              >
-                {view === "signup" ? "Já tem conta? Entrar" : "Ainda não tem conta? Criar conta de professor"}
-              </button>
-            )}
-            {view === "login" && (
+      {view === "login" && (
               <button
                 className="switch directorSignupLink"
                 onClick={() => {
