@@ -560,7 +560,178 @@ export default function Home() {
           </div>
         </nav>
       )}
-      {view === "login" && (
+      {view === "educa" && (
+        <section className="educaPage">
+          <div className="educaHero">
+            <button className="back" onClick={() => setView("home")}>← Voltar ao início</button>
+            <div className="educaEyebrow"><span>✦</span> INTELIGÊNCIA ARTIFICIAL NA EDUCAÇÃO</div>
+            <h1>Educa <em>I.A.</em></h1>
+            <p>Ferramentas inteligentes para apoiar o planejamento, a documentação pedagógica e o desenvolvimento de experiências de aprendizagem.</p>
+          </div>
+          <div className="educaToolsHeading">
+            <div><small>ESPAÇO DE FERRAMENTAS</small><h2>O que vamos criar hoje?</h2></div>
+            <span>4 ferramentas</span>
+          </div>
+          <div className="educaToolsGrid">
+            <article className="educaToolCard educaToolBlue" role="button" tabIndex={0} onClick={() => { setView("creator"); setMessage(""); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setView("creator"); setMessage(""); } }}>
+              <div className="educaToolTop"><span className="educaToolIcon">✎</span><span className="educaToolNumber">01</span></div>
+              <h3>Criador de Aula</h3>
+              <p>Planeje aulas completas com propostas lúdicas, objetivos de aprendizagem, materiais e vivências adequadas à Educação Infantil.</p>
+              <div className="educaToolFooter"><span>Planejamento pedagógico</span><span className="educaToolArrow">↗</span></div>
+            </article>
+            <article className="educaToolCard educaToolOrange" role="button" tabIndex={0} onClick={() => { setView("individual"); setMessage(""); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setView("individual"); setMessage(""); } }}>
+              <div className="educaToolTop"><span className="educaToolIcon">▤</span><span className="educaToolNumber">02</span></div>
+              <h3>Relatório Individual</h3>
+              <p>Organize observações e registros do desenvolvimento da criança em um relatório claro, cuidadoso e individualizado.</p>
+              <div className="educaToolFooter"><span>Documentação pedagógica</span><span className="educaToolArrow">↗</span></div>
+            </article>
+            <article className="educaToolCard educaToolPurple" role="button" tabIndex={0} onClick={() => { setView("pei"); setMessage(""); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setView("pei"); setMessage(""); } }}>
+              <div className="educaToolTop"><span className="educaToolIcon">♡</span><span className="educaToolNumber">03</span></div>
+              <h3>P.E.I.</h3>
+              <p>Estruture um Plano Educacional Individualizado considerando potencialidades, necessidades, estratégias e acompanhamento.</p>
+              <div className="educaToolFooter"><span>Inclusão e acompanhamento</span><span className="educaToolArrow">↗</span></div>
+            </article>
+            <article className="educaToolCard educaToolGreen">
+              <div className="educaToolTop"><span className="educaToolIcon">✧</span><span className="educaToolNumber">04</span></div>
+              <h3>Projeto</h3>
+              <p>Desenvolva projetos pedagógicos com tema, justificativa, objetivos, etapas, experiências e formas de avaliação.</p>
+              <div className="educaToolFooter"><span>Projetos e experiências</span><span className="educaToolArrow">↗</span></div>
+            </article>
+          </div>
+          <div className="educaNote"><span>✦</span><p><strong>Educar com criatividade, planejar com inteligência.</strong><br/>Um espaço de apoio ao trabalho pedagógico, com o olhar humano sempre no centro.</p></div>
+        </section>
+      )}
+
+      {view === "creator" && (
+        <CriadorAula
+          onBack={() => setView("educa")}
+        />
+      )}
+
+      {view === "individual" && (
+        <RelatorioIndividual onBack={() => setView("educa")} />
+      )}
+
+      {view === "pei" && (
+        <PEI onBack={() => setView("educa")} />
+      )}
+
+      {(view === "login" || view === "signup" || view === "directorSignup") && (
+        <section className="auth">
+          <div className="authCard">
+            <button
+              className="back"
+              onClick={() => {
+                setView("home");
+                setMessage("");
+              }}
+            >
+              ← Voltar ao início
+            </button>
+            <small>ACESSO SEGURO</small>
+            <h2>
+              {view === "signup" ? "Criar conta de professor" : view === "directorSignup" ? "Cadastro do diretor" : "Bem-vindo de volta!"}
+            </h2>
+            <p>
+              {view === "signup"
+                ? "Vincule sua conta à escola, ao segmento e à sua turma."
+                : view === "directorSignup"
+                  ? "Cadastre-se com e-mail e senha para conferir as avaliações da sua escola."
+                  : "Entre para acessar suas avaliações."}
+            </p>
+
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (view === "signup" || view === "directorSignup") void registerAccount();
+                else void signIn();
+              }}
+            >
+              {(view === "signup" || view === "directorSignup") && (
+                <>
+                  <label>
+                    Nome completo
+                    <input
+                      required
+                      value={fullName}
+                      onChange={(event) => setFullName(event.target.value)}
+                      placeholder="Seu nome completo"
+                    />
+                  </label>
+                  <label>
+                    Escola
+                    <select required value={school} onChange={(event) => setSchool(event.target.value)}>
+                      <option value="">Selecione sua escola</option>
+                      {SCHOOLS.map((item) => (
+                        <option value={item} key={item}>
+                          {item}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {view === "signup" && <div className="fields">
+                    <label>
+                      Segmento
+                      <select value={segment} onChange={(event) => setSegment(event.target.value)}>
+                        {SEGMENTS.map((item) => (
+                          <option value={item} key={item}>
+                            {item}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Turma
+                      <select value={className} onChange={(event) => setClassName(event.target.value)}>
+                        {CLASSES.map((item) => (
+                          <option value={item} key={item}>
+                            {item}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>}
+                </>
+              )}
+
+              <label>
+                E-mail
+                <input
+                  required
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="voce@escola.com.br"
+                />
+              </label>
+              <label>
+                Senha
+                <input
+                  required
+                  minLength={8}
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Mínimo de 8 caracteres"
+                />
+              </label>
+              <button className="primary wide" disabled={loading}>
+                {loading ? "Aguarde..." : view === "signup" || view === "directorSignup" ? "Criar conta →" : "Entrar →"}
+              </button>
+            </form>
+
+            {view !== "directorSignup" && (
+              <button
+                className="switch"
+                onClick={() => {
+                  setView(view === "signup" ? "login" : "signup");
+                  setMessage("");
+                }}
+              >
+                {view === "signup" ? "Já tem conta? Entrar" : "Ainda não tem conta? Criar conta de professor"}
+              </button>
+            )}
+            {view === "login" && (
               <button
                 className="switch directorSignupLink"
                 onClick={() => {
