@@ -127,7 +127,9 @@ export default function Home() {
     const heroText = heroTextRef.current;
     if (!video || !hero || !director || !ai || !finalSection || !heroText) return;
 
-    // Respeita a preferência do sistema, como no HTML original.
+    // O HTML original usa hero-mobile.mp4 em telas de até 720px.
+    // Como esse arquivo ainda não existe em public/, mantemos hero.mp4 como fallback.
+    // A regra de movimento reduzido é a mesma do HTML original.
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     let currentTime = 0;
@@ -583,7 +585,7 @@ export default function Home() {
           </div>
           <header className="topo">
             <a className="marca" href="#hero">Recreação Catanduva</a>
-            <nav aria-label="Navegação principal"><ul className="menu">
+            <nav aria-label="Principal"><ul className="menu">
               <li><a href="#segmentos">Área do diretor</a></li>
               <li><a href="#educa-ai">Educa A.I</a></li>
               <li><a href="https://sites.google.com/view/recreacaocatanduva/recursos-digitais" target="_blank" rel="noreferrer">Recursos Digitais</a></li>
@@ -593,12 +595,12 @@ export default function Home() {
             <div className="texto" id="texto" ref={heroTextRef}>
               <h1><span className="pal">Recreação</span><span className="pal">Catanduva</span></h1>
               <p>Por professores. Para professores.</p>
-              <button className="botao" onClick={()=>{setView("login");setMessage("");window.scrollTo({top:0,behavior:"instant"});}}>Área do professor</button>
+              <a className="botao" href="#login" onClick={e=>{e.preventDefault();setView("login");setMessage("");window.scrollTo({top:0,behavior:"instant"});}}>Área do professor</a>
             </div>
           </div></section>
           <section className="bloco" id="segmentos" ref={directorSectionRef}>
             <h2>Área do diretor</h2><p className="intro">Acesse a área restrita da direção.</p>
-            <button className="botao grande" onClick={()=>{setView("login");setMessage("Entre com seu e-mail e senha ou crie o cadastro de diretor da sua escola.");window.scrollTo({top:0,behavior:"instant"});}}>Acessar área do diretor</button>
+            <a className="botao grande" href="#login" onClick={e=>{e.preventDefault();setView("login");setMessage("Entre com seu e-mail e senha ou crie o cadastro de diretor da sua escola.");window.scrollTo({top:0,behavior:"instant"});}}>Acessar área do diretor</a>
           </section>
           <section className="bloco ia" id="educa-ai" ref={aiSectionRef}><div className="painel">
             <h2>Educa A.I</h2><p className="intro">Ferramentas com inteligência artificial para o planejamento do professor.</p>
