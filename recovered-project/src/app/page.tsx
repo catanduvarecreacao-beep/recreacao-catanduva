@@ -128,7 +128,6 @@ export default function Home() {
     if (!video || !hero || !director || !ai || !finalSection || !heroText) return;
 
     let targetTime = 0;
-    let easedTime = 0;
     let frame = 0;
     let lastSeekAt = 0;
     const clamp = (value: number) => Math.min(1, Math.max(0, value));
@@ -143,23 +142,16 @@ export default function Home() {
       // Aguarda o navegador concluir a busca atual; o evento seeked agenda o próximo quadro.
       if (video.seeking) return;
 
-      const delta = targetTime - video.currentTime;
-      if (Math.abs(delta) < 0.025) {
-        easedTime = targetTime;
-        return;
-      }
-
-      easedTime += (targetTime - easedTime) * 0.52;
       const now = performance.now();
-      if (now - lastSeekAt >= 24) {
+      if (now - lastSeekAt >= 32 && Math.abs(targetTime - video.currentTime) >= 0.04) {
         try {
-          video.currentTime = clamp(easedTime / video.duration) * video.duration;
+          // Busca diretamente o ponto correspondente à rolagem, sem interpolação que atrase a transição.
+          video.currentTime = clamp(targetTime / video.duration) * video.duration;
           lastSeekAt = now;
         } catch {
           // O navegador pode ainda não ter disponibilizado o intervalo para busca.
         }
       }
-      if (Math.abs(targetTime - easedTime) >= 0.025) scheduleFrame();
     };
 
     const syncToScroll = () => {
@@ -178,7 +170,6 @@ export default function Home() {
 
       if (Number.isFinite(video.duration) && video.duration > 0) {
         targetTime = progress * video.duration;
-        if (!video.seeking && Math.abs(easedTime - video.currentTime) < 0.08) easedTime = video.currentTime;
         scheduleFrame();
       }
 
@@ -198,7 +189,6 @@ export default function Home() {
 
     const onMetadata = () => {
       video.pause();
-      easedTime = video.currentTime || 0;
       syncToScroll();
     };
     const onSeeked = () => scheduleFrame();
