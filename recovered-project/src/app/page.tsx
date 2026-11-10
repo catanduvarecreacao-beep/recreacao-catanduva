@@ -183,16 +183,11 @@ export default function Home() {
       if (!active) return;
 
       const { target, heroProgress } = getTarget();
-      if (video.duration && Number.isFinite(video.duration)) {
+      if (video.duration) {
         const destination = target * video.duration;
-        // Mesma suavização do HTML fornecido: evita saltos bruscos entre quadros.
         currentTime += (destination - currentTime) * 0.12;
-        if (Math.abs(destination - currentTime) > 0.01 && !video.seeking) {
-          try {
-            video.currentTime = clamp(currentTime / video.duration) * video.duration;
-          } catch {
-            // Alguns navegadores ainda podem não ter liberado o intervalo para busca.
-          }
+        if (Math.abs(destination - currentTime) > 0.01) {
+          video.currentTime = currentTime;
         }
       }
 
@@ -207,17 +202,15 @@ export default function Home() {
 
     const onMetadata = () => {
       video.pause();
-      if (!animationFrame) animationFrame = window.requestAnimationFrame(render);
     };
     const unlockForSafari = () => {
       video.play().then(() => video.pause()).catch(() => undefined);
     };
 
-    video.pause();
     video.addEventListener("loadedmetadata", onMetadata);
     window.addEventListener("touchstart", unlockForSafari, { once: true, passive: true });
     if (video.readyState >= HTMLMediaElement.HAVE_METADATA) onMetadata();
-    else video.load();
+    render();
 
     return () => {
       active = false;
