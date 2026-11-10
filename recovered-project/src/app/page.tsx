@@ -4,7 +4,7 @@ import CriadorAula from "./CriadorAula";
 import RelatorioIndividual from "./RelatorioIndividual";
 import PEI from "./PEI";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createClient, type Session } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -73,6 +73,7 @@ type Evaluation = {
 };
 
 export default function Home() {
+  const heroVideoRef = useRef<HTMLVideoElement | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [view, setView] = useState<"home" | "login" | "signup" | "directorSignup" | "app" | "director" | "educa" | "creator" | "individual" | "pei">("home");
@@ -108,6 +109,38 @@ export default function Home() {
 
     return () => data.subscription.unsubscribe();
   }, []);
+
+  // Sincroniza o avanço e o retrocesso do vídeo do Hero com a rolagem da página.
+  useEffect(() => {
+    if (view !== "home") return;
+    const video = heroVideoRef.current;
+    if (!video) return;
+
+    let frame = 0;
+    const syncVideoToScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        if (!Number.isFinite(video.duration) || video.duration <= 0) return;
+        const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+        const progress = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+        const targetTime = progress * Math.max(0, video.duration - 0.04);
+        if (Math.abs(video.currentTime - targetTime) > 0.025) video.currentTime = targetTime;
+      });
+    };
+
+    video.pause();
+    video.addEventListener("loadedmetadata", syncVideoToScroll);
+    window.addEventListener("scroll", syncVideoToScroll, { passive: true });
+    window.addEventListener("resize", syncVideoToScroll);
+    syncVideoToScroll();
+
+    return () => {
+      cancelAnimationFrame(frame);
+      video.removeEventListener("loadedmetadata", syncVideoToScroll);
+      window.removeEventListener("scroll", syncVideoToScroll);
+      window.removeEventListener("resize", syncVideoToScroll);
+    };
+  }, [view]);
 
   // Permite fechar a janela do material pelo teclado.
   useEffect(() => {
@@ -493,7 +526,7 @@ export default function Home() {
       {view === "home" && (
         <>
         <div className="homeVideoBackdrop" aria-hidden="true">
-          <video autoPlay muted loop playsInline preload="metadata" poster="/hero-poster.jpg">
+          <video ref={heroVideoRef} muted playsInline preload="auto" poster="/hero-poster.jpg" aria-label="Vídeo de fundo do Hero sincronizado com a rolagem">
             <source src="/hero.mp4" type="video/mp4" />
           </video>
           <div className="homeVideoShade" />
