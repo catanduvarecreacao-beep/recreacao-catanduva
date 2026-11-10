@@ -492,7 +492,13 @@ export default function Home() {
 
       {view === "home" && (
         <>
-        <section className="hero">
+        <div className="homeVideoBackdrop" aria-hidden="true">
+          <video autoPlay muted loop playsInline preload="metadata" poster="/hero-poster.jpg">
+            <source src="/hero.mp4" type="video/mp4" />
+          </video>
+          <div className="homeVideoShade" />
+        </div>
+        <section className="hero homeHero">
           <div className="heroText">
             <small>✦ EDUCAÇÃO INFANTIL • CATANDUVA</small>
             <h1>
@@ -573,6 +579,31 @@ export default function Home() {
             <h3>Brincadeira</h3>
             <p>O brincar como caminho para explorar, conviver e aprender.</p>
           </article>
+        </section>
+        <section className="homeAccessSections" aria-label="Acessos e ferramentas">
+          <div className="homeAccessIntro">
+            <small>RECREAÇÃO CATANDUVA</small>
+            <h2>Um ambiente completo para <em>educar, planejar e acompanhar.</em></h2>
+            <p>Encontre em um só lugar as ferramentas e os recursos que apoiam o trabalho pedagógico.</p>
+          </div>
+          <div className="homeAccessGrid">
+            <button className="homeAccessCard directorAccess" onClick={() => { setView("login"); setMessage("Entre com seu e-mail e senha ou crie o cadastro de diretor da sua escola."); }}>
+              <span className="homeAccessIcon">⌂</span><span className="homeAccessEyebrow">ACOMPANHAMENTO</span>
+              <strong>Área do Diretor</strong><small>Acesse as avaliações da escola, acompanhe os registros e realize as conferências.</small><b>Acessar área <i>↗</i></b>
+            </button>
+            <button className="homeAccessCard teacherAccess" onClick={() => { setView("login"); setMessage(""); }}>
+              <span className="homeAccessIcon">✎</span><span className="homeAccessEyebrow">REGISTROS PEDAGÓGICOS</span>
+              <strong>Área do Professor</strong><small>Registre as avaliações das aulas e acompanhe o progresso de cada bimestre.</small><b>Acessar sistema <i>↗</i></b>
+            </button>
+            <button className="homeAccessCard aiAccess" onClick={() => { setView("educa"); setMessage(""); }}>
+              <span className="homeAccessIcon">✧</span><span className="homeAccessEyebrow">INTELIGÊNCIA ARTIFICIAL</span>
+              <strong>Educa I.A.</strong><small>Crie aulas, relatórios individuais, planos educacionais e projetos pedagógicos.</small><b>Explorar ferramentas <i>↗</i></b>
+            </button>
+            <a className="homeAccessCard resourcesAccess" href="https://sites.google.com/view/recreacaocatanduva/recursos-digitais" target="_blank" rel="noreferrer">
+              <span className="homeAccessIcon">▦</span><span className="homeAccessEyebrow">MATERIAIS DE APOIO</span>
+              <strong>Recursos Digitais</strong><small>Encontre materiais e conteúdos de apoio para enriquecer as experiências de aprendizagem.</small><b>Ver recursos <i>↗</i></b>
+            </a>
+          </div>
         </section>
         </>
       )}
