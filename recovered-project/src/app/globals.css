@@ -551,3 +551,142 @@ body[data-cap="seg"] .referenceHome .referenceVideo:before{opacity:.55}body[data
     font-size:16px;
   }
 }
+
+
+/* Revisão responsiva geral — navegação, seções e áreas internas */
+@media(max-width:760px){
+  html,body{width:100%;max-width:100%;overflow-x:hidden}
+  .referenceHome{width:100%;overflow-x:clip}
+  .referenceHome .homeNav{
+    position:sticky;
+    top:0;
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    justify-content:center;
+    gap:5px;
+    min-height:0;
+    padding:8px max(14px,env(safe-area-inset-right)) 7px max(14px,env(safe-area-inset-left));
+  }
+  .referenceHome .homeNav .brand{
+    align-self:flex-start;
+    min-height:42px;
+    padding:3px 4px;
+    font-size:16px;
+    line-height:1.2;
+  }
+  .referenceHome .homeNav .brand i{
+    width:34px;
+    height:34px;
+    padding:7px;
+    margin-right:7px;
+    text-align:center;
+  }
+  .referenceHome .homeNav>div{
+    display:flex;
+    flex-wrap:nowrap;
+    justify-content:flex-start;
+    gap:5px;
+    width:100%;
+    min-width:0;
+    padding:1px 0 4px;
+    overflow-x:auto;
+    overflow-y:hidden;
+    overscroll-behavior-x:contain;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .referenceHome .homeNav>div::-webkit-scrollbar{display:none}
+  .referenceHome .homeNav>div button{
+    flex:0 0 auto;
+    min-height:42px;
+    padding:9px 12px;
+    border-radius:10px;
+    font-size:12px;
+    line-height:1.2;
+    touch-action:pan-x;
+  }
+  .referenceHome #hero{height:165svh;min-height:0}
+  .referenceHome .palco{height:calc(100svh - 105px);min-height:520px}
+  .referenceHome .texto{
+    left:22px;
+    right:22px;
+    bottom:10%;
+    top:auto;
+    max-width: min(100% - 44px, 34rem);
+    transform:none;
+  }
+  .referenceHome .texto h1{
+    font-size:clamp(2.65rem,12vw,4.3rem);
+    line-height:.98;
+    overflow-wrap:anywhere;
+  }
+  .referenceHome .texto p{font-size:clamp(1rem,4.2vw,1.2rem);line-height:1.5}
+  .referenceHome .botao{max-width:100%;text-align:center}
+  .referenceHome section.bloco{
+    padding:clamp(2.7rem,9vw,4rem) 20px;
+  }
+  .referenceHome #segmentos{
+    min-height:68svh;
+    justify-content:center;
+  }
+  .referenceHome #segmentos h2{font-size:clamp(2.3rem,10vw,3.5rem);line-height:1.05}
+  .referenceHome #segmentos .intro{font-size:1rem;line-height:1.6}
+  .referenceHome .botao.grande{
+    width:100%;
+    max-width:360px;
+    padding:14px 18px;
+    font-size:1rem;
+    text-align:center;
+  }
+  .referenceHome .painel{
+    width:100%;
+    padding:clamp(18px,5vw,26px);
+    border-radius:20px;
+  }
+  .referenceHome .painel h2{font-size:clamp(1.8rem,8vw,2.5rem)}
+  .referenceHome .ferramentas{grid-template-columns:1fr;gap:12px}
+  .referenceHome .ferramentas a{
+    min-height:54px;
+    display:flex;
+    align-items:center;
+    padding:14px 16px;
+    font-size:1rem;
+    overflow-wrap:anywhere;
+  }
+  .referenceHome .extras{display:grid;grid-template-columns:1fr;gap:12px}
+  .referenceHome .extras a{min-width:0;padding:20px}
+  .referenceHome .referenceFooter{
+    padding:30px 20px calc(30px + env(safe-area-inset-bottom));
+    overflow-wrap:anywhere;
+  }
+  .referenceHome .referenceFooter p{font-size:1.15rem}
+  .referenceHome .referenceFooter li{line-height:1.6}
+  .educaPage,.creatorPage{width:100%;max-width:100%;overflow-x:clip}
+  .educaToolsGrid{grid-template-columns:1fr}
+  .educaToolCard{min-width:0}
+  .creatorForm,.creatorPreview,.reportForm,.peiForm{min-width:0;width:100%}
+  .auth{padding:20px 14px}
+  .authCard{width:100%;max-width:100%;padding:24px 19px}
+  .dashboard{width:100%;max-width:100%;padding-left:14px;padding-right:14px}
+  .dashboard header{gap:14px;flex-wrap:wrap}
+  .dashboard header>div{min-width:0;overflow-wrap:anywhere}
+  .dashboard header .secondary{width:auto;min-height:44px}
+  .panel,.bimesterSection{min-width:0}
+  input,select,textarea{max-width:100%}
+  button,a{ -webkit-tap-highlight-color:transparent }
+}
+@media(max-width:420px){
+  .referenceHome .homeNav .brand{font-size:15px}
+  .referenceHome .homeNav>div button{font-size:11px;padding:9px 10px}
+  .referenceHome .texto{left:18px;right:18px;bottom:8%}
+  .referenceHome .texto h1{font-size:clamp(2.45rem,11.5vw,3.25rem)}
+  .referenceHome .painel{padding:17px}
+  .referenceHome .referenceFooter{font-size:.88rem}
+  .authCard{padding:21px 16px}
+}
+@media(hover:none){
+  .referenceHome .botao:hover,.referenceHome .botao.grande:hover,
+  .referenceHome .ferramentas a:hover,.referenceHome .extras a:hover,
+  .homeAccessCard:hover,.educaToolCard:hover{transform:none;box-shadow:none}
+}
