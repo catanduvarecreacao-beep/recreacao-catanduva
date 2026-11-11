@@ -654,9 +654,6 @@ export default function Home() {
         <div className="referenceHome">
           <div className="referenceVideo" aria-hidden="true">
             <canvas ref={heroCanvasRef} className="referenceVideoCanvas" />
-            <video ref={heroVideoRef} muted playsInline preload="none" poster="/hero-poster.jpg" aria-label="Fonte para gerar os quadros do fundo">
-              <source src="/hero.mp4" type="video/mp4" />
-            </video>
           </div>
           <nav className="nav homeNav" aria-label="Navegação principal">
             <button className="brand" onClick={() => { setView("home"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
