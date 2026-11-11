@@ -110,7 +110,13 @@ export default function Home() {
       if (access === "diretor") {
         setMessage("Entre com seu e-mail e senha ou crie o cadastro de diretor da sua escola.");
       }
+      return;
     }
+
+    const tool = params.get("ferramenta");
+    if (tool === "criador-aula") setView("creator");
+    if (tool === "relatorio-individual") setView("individual");
+    if (tool === "pei") setView("pei");
   }, []);
 
   // Mantém a sessão sincronizada com o Supabase Auth.
@@ -635,9 +641,9 @@ export default function Home() {
           <section className="bloco ia" id="educa-ai" ref={aiSectionRef}><div className="painel">
             <h2>Educa A.I</h2><p className="intro">Ferramentas com inteligência artificial para o planejamento do professor.</p>
             <ul className="ferramentas">
-              <li><a href="#educa-ai" onClick={e=>{e.preventDefault();setView("creator");window.scrollTo({top:0,behavior:"instant"});}}>Criador de Aula</a></li>
-              <li><a href="#educa-ai" onClick={e=>{e.preventDefault();setView("individual");window.scrollTo({top:0,behavior:"instant"});}}>Relatório Individual</a></li>
-              <li><a href="#educa-ai" onClick={e=>{e.preventDefault();setView("pei");window.scrollTo({top:0,behavior:"instant"});}}>P.E.I</a></li>
+              <li><a href="/?ferramenta=criador-aula" onClick={e=>{e.preventDefault();setView("creator");window.scrollTo({top:0,behavior:"instant"});}}>Criador de Aula</a></li>
+              <li><a href="/?ferramenta=relatorio-individual" onClick={e=>{e.preventDefault();setView("individual");window.scrollTo({top:0,behavior:"instant"});}}>Relatório Individual</a></li>
+              <li><a href="/?ferramenta=pei" onClick={e=>{e.preventDefault();setView("pei");window.scrollTo({top:0,behavior:"instant"});}}>P.E.I</a></li>
               <li><a href="#educa-ai" onClick={e=>{e.preventDefault();setView("educa");window.scrollTo({top:0,behavior:"instant"});}}>Projeto</a></li>
             </ul>
           </div></section>
