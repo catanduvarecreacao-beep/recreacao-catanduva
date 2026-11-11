@@ -611,10 +611,10 @@ body[data-cap="seg"] .referenceHome .referenceVideo:before{opacity:.55}body[data
   .referenceHome .texto{
     left:22px;
     right:22px;
-    top:24px;
+    top:50%;
     bottom:auto;
     max-width: min(100% - 44px, 34rem);
-    transform:none;
+    transform:translateY(-50%);
   }
   .referenceHome .texto h1{
     font-size:clamp(2.65rem,12vw,4.3rem);
