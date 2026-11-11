@@ -77,6 +77,7 @@ export default function Home() {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [view, setView] = useState<"home" | "login" | "signup" | "directorSignup" | "app" | "director" | "educa" | "creator" | "individual" | "pei">("home");
+  const [accessIntent, setAccessIntent] = useState<"professor" | "diretor" | null>(null);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -116,7 +117,7 @@ export default function Home() {
   const finalSectionRef = useRef<HTMLElement | null>(null);
   const heroTextRef = useRef<HTMLDivElement | null>(null);
 
-  // Reproduz a sincronização de vídeo do HTML de referência, capítulo por capítulo.
+  // Carrega o vídeo uma única vez em memória e mantém somente o seek mais recente.
   useEffect(() => {
     if (view !== "home") return;
     const video = heroVideoRef.current;
@@ -127,18 +128,15 @@ export default function Home() {
     const heroText = heroTextRef.current;
     if (!video || !hero || !director || !ai || !finalSection || !heroText) return;
 
-    // O HTML original usa hero-mobile.mp4 em telas de até 720px.
-    // Como esse arquivo ainda não existe em public/, mantemos hero.mp4 como fallback.
-    // A regra de movimento reduzido é a mesma do HTML original.
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reducedMotion) return;
 
-    let currentTime = 0;
-    let animationFrame = 0;
     let active = true;
+    let animationFrame = 0;
+    let objectUrl: string | null = null;
+    let latestTime = 0;
+    const controller = new AbortController();
     const clamp = (value: number) => Math.min(Math.max(value, 0), 1);
-
-    // Mantém exatamente a divisão temporal do vídeo original:
-    // Hero (0–50%), Área do Diretor (50–75%) e Educa A.I (75–100%).
     const chapters: Array<[HTMLElement, number, number]> = [
       [hero, 0, 0.5],
       [director, 0.5, 0.75],
@@ -148,34 +146,26 @@ export default function Home() {
     const getTarget = () => {
       let target = 0;
       let heroProgress = 0;
-
       chapters.forEach(([element, from, to], index) => {
         const rect = element.getBoundingClientRect();
-        let progress: number;
-
-        if (index === 0) {
-          progress = clamp(-rect.top / Math.max(1, element.offsetHeight - window.innerHeight));
-          heroProgress = progress;
-          target = from + (to - from) * progress;
-        } else {
-          progress = clamp((window.innerHeight - rect.top) / (window.innerHeight * 0.9));
-          if (progress > 0) target = from + (to - from) * progress;
-        }
+        const progress = index === 0
+          ? clamp(-rect.top / Math.max(1, element.offsetHeight - window.innerHeight))
+          : clamp((window.innerHeight - rect.top) / (window.innerHeight * 0.9));
+        if (index === 0) heroProgress = progress;
+        if (index === 0 || progress > 0) target = from + (to - from) * progress;
       });
-
       return { target, heroProgress };
     };
 
     const getCurrentSection = () => {
       const midpoint = window.innerHeight / 2;
       let current = "hero";
-      const sections: Array<[string, HTMLElement]> = [
+      ([
         ["hero", hero],
         ["seg", director],
         ["ia", ai],
         ["fim", finalSection],
-      ];
-      sections.forEach(([name, element]) => {
+      ] as Array<[string, HTMLElement]>).forEach(([name, element]) => {
         if (element.getBoundingClientRect().top <= midpoint) current = name;
       });
       return current;
@@ -183,42 +173,59 @@ export default function Home() {
 
     const render = () => {
       if (!active) return;
-
       const { target, heroProgress } = getTarget();
-      if (video.duration) {
-        const destination = target * video.duration;
-        currentTime += (destination - currentTime) * 0.12;
-        if (Math.abs(destination - currentTime) > 0.01) {
-          video.currentTime = currentTime;
+      if (video.duration && Number.isFinite(video.duration)) {
+        latestTime = clamp(target) * video.duration;
+        // Não enfileira seeks: enquanto o navegador decodifica um quadro,
+        // a rolagem atualiza latestTime; ao terminar, aplica-se só a posição mais recente.
+        if (!video.seeking && Math.abs(video.currentTime - latestTime) > 0.035) {
+          try { video.currentTime = latestTime; } catch { /* aguarda o próximo quadro */ }
         }
       }
-
       heroText.style.opacity = String(
         heroProgress > 0.7 ? Math.max(0, 1 - (heroProgress - 0.7) / 0.2) : 1,
       );
-
       const section = getCurrentSection();
       if (document.body.dataset.cap !== section) document.body.dataset.cap = section;
       animationFrame = window.requestAnimationFrame(render);
     };
 
-    const onMetadata = () => {
-      video.pause();
-    };
+    const onMetadata = () => video.pause();
     const unlockForSafari = () => {
       video.play().then(() => video.pause()).catch(() => undefined);
     };
 
     video.addEventListener("loadedmetadata", onMetadata);
     window.addEventListener("touchstart", unlockForSafari, { once: true, passive: true });
-    if (video.readyState >= HTMLMediaElement.HAVE_METADATA) onMetadata();
     render();
+
+    // A versão mobile dedicada ainda não está no repositório; usa o mesmo arquivo
+    // em todas as telas, sem provocar uma requisição 404 no celular.
+    fetch("/hero.mp4", { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error("Falha ao baixar o vídeo");
+        return response.blob();
+      })
+      .then((blob) => {
+        if (!active) return;
+        objectUrl = URL.createObjectURL(blob);
+        video.src = objectUrl;
+        video.load();
+      })
+      .catch(() => {
+        if (!active || controller.signal.aborted) return;
+        // Fallback: entrega o arquivo diretamente ao elemento de vídeo.
+        video.src = "/hero.mp4";
+        video.load();
+      });
 
     return () => {
       active = false;
+      controller.abort();
       if (animationFrame) window.cancelAnimationFrame(animationFrame);
       video.removeEventListener("loadedmetadata", onMetadata);
       window.removeEventListener("touchstart", unlockForSafari);
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
       delete document.body.dataset.cap;
     };
   }, [view]);
@@ -595,12 +602,12 @@ export default function Home() {
             <div className="texto" id="texto" ref={heroTextRef}>
               <h1><span className="pal">Recreação</span><span className="pal">Catanduva</span></h1>
               <p>Por professores. Para professores.</p>
-              <a className="botao" href="#login" onClick={e=>{e.preventDefault();setView("login");setMessage("");window.scrollTo({top:0,behavior:"instant"});}}>Área do professor</a>
+              <a className="botao" href="#login" onClick={e=>{e.preventDefault();setAccessIntent("professor");setView("login");setMessage("");window.scrollTo({top:0,behavior:"instant"});}}>Área do professor</a>
             </div>
           </div></section>
           <section className="bloco" id="segmentos" ref={directorSectionRef}>
             <h2>Área do diretor</h2><p className="intro">Acesse a área restrita da direção.</p>
-            <a className="botao grande" href="#login" onClick={e=>{e.preventDefault();setView("login");setMessage("Entre com seu e-mail e senha ou crie o cadastro de diretor da sua escola.");window.scrollTo({top:0,behavior:"instant"});}}>Acessar área do diretor</a>
+            <a className="botao grande" href="#login" onClick={e=>{e.preventDefault();setAccessIntent("diretor");setView("login");setMessage("Entre com seu e-mail e senha ou crie o cadastro de diretor da sua escola.");window.scrollTo({top:0,behavior:"instant"});}}>Acessar área do diretor</a>
           </section>
           <section className="bloco ia" id="educa-ai" ref={aiSectionRef}><div className="painel">
             <h2>Educa A.I</h2><p className="intro">Ferramentas com inteligência artificial para o planejamento do professor.</p>
@@ -627,8 +634,8 @@ export default function Home() {
           <div>
             <button onClick={()=>setView("home")}>Início</button>
             <button className="educaNav" onClick={()=>{setView("educa");setMessage("");}}>Educa I.A.</button>
-            <button onClick={()=>{setView("login");setMessage("");}}>Área do Professor</button>
-            <button className="director" onClick={()=>{setView("login");setMessage("Entre com seu e-mail e senha ou crie o cadastro de diretor da sua escola.");}}>Área do Diretor</button>
+            <button onClick={()=>{setAccessIntent("professor");setView("login");setMessage("");}}>Área do Professor</button>
+            <button className="director" onClick={()=>{setAccessIntent("diretor");setView("login");setMessage("Entre com seu e-mail e senha ou crie o cadastro de diretor da sua escola.");}}>Área do Diretor</button>
             {session&&<button onClick={signOut}>Sair</button>}
           </div>
         </nav>
