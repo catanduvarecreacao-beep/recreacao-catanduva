@@ -73,7 +73,6 @@ type Evaluation = {
 };
 
 export default function Home() {
-  const heroVideoRef = useRef<HTMLVideoElement | null>(null);
   const heroCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -137,34 +136,26 @@ export default function Home() {
   const finalSectionRef = useRef<HTMLElement | null>(null);
   const heroTextRef = useRef<HTMLDivElement | null>(null);
 
-  // Converte o vídeo em uma sequência de quadros WebP e controla a exibição pelo scroll.
-  // Os quadros são guardados no IndexedDB para não repetir a conversão em visitas futuras.
+  // Exibe imagens WebP pré-geradas no build, sincronizadas diretamente com a rolagem.
+  // Nenhum vídeo é convertido ou decodificado durante a visita do usuário.
   useEffect(() => {
     if (view !== "home") return;
-    const video = heroVideoRef.current;
     const canvas = heroCanvasRef.current;
     const hero = heroSectionRef.current;
     const director = directorSectionRef.current;
     const ai = aiSectionRef.current;
     const finalSection = finalSectionRef.current;
     const heroText = heroTextRef.current;
-    const context = canvas?.getContext("2d", { alpha: false });
-    if (!video || !canvas || !context || !hero || !director || !ai || !finalSection || !heroText) return;
-
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reducedMotion) return;
+    const context = canvas?.getContext("2d", { alpha: false, desynchronized: true });
+    if (!canvas || !context || !hero || !director || !ai || !finalSection || !heroText) return;
 
     const FRAME_COUNT = 60;
-    const DATABASE_NAME = "recreacao-catanduva-hero";
-    const STORE_NAME = "frames-v1";
+    const frames: HTMLImageElement[] = new Array(FRAME_COUNT);
     let active = true;
     let animationFrame = 0;
-    let frames: Blob[] = [];
-    let currentFrame = 0;
     let lastDrawnFrame = -1;
-    let fallbackToVideo = false;
-    const bitmapCache = new Map<number, ImageBitmap>();
-    const bitmapLoading = new Set<number>();
+    let loaded = false;
+    let currentSection = "";
     const clamp = (value: number) => Math.min(Math.max(value, 0), 1);
     const chapters: Array<[HTMLElement, number, number]> = [
       [hero, 0, 0.5],
@@ -172,136 +163,46 @@ export default function Home() {
       [ai, 0.75, 1],
     ];
 
-    const openFrameDatabase = () => new Promise<IDBDatabase | null>((resolve) => {
-      if (!("indexedDB" in window)) return resolve(null);
-      try {
-        const request = window.indexedDB.open(DATABASE_NAME, 1);
-        request.onupgradeneeded = () => {
-          const database = request.result;
-          if (!database.objectStoreNames.contains(STORE_NAME)) {
-            database.createObjectStore(STORE_NAME);
-          }
-        };
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => resolve(null);
-        request.onblocked = () => resolve(null);
-      } catch {
-        resolve(null);
-      }
-    });
-
-    const readCachedFrames = async () => {
-      const database = await openFrameDatabase();
-      if (!database) return null;
-      return new Promise<Blob[] | null>((resolve) => {
-        try {
-          const transaction = database.transaction(STORE_NAME, "readonly");
-          const request = transaction.objectStore(STORE_NAME).getAll();
-          request.onsuccess = () => {
-            const result = request.result as Blob[];
-            database.close();
-            resolve(result.length === FRAME_COUNT && result.every((item) => item instanceof Blob) ? result : null);
-          };
-          request.onerror = () => {
-            database.close();
-            resolve(null);
-          };
-        } catch {
-          database.close();
-          resolve(null);
-        }
-      });
-    };
-
-    const saveCachedFrames = async (items: Blob[]) => {
-      const database = await openFrameDatabase();
-      if (!database) return;
-      await new Promise<void>((resolve) => {
-        try {
-          const transaction = database.transaction(STORE_NAME, "readwrite");
-          const store = transaction.objectStore(STORE_NAME);
-          store.clear();
-          items.forEach((item, index) => store.put(item, index));
-          transaction.oncomplete = () => { database.close(); resolve(); };
-          transaction.onerror = () => { database.close(); resolve(); };
-          transaction.onabort = () => { database.close(); resolve(); };
-        } catch {
-          database.close();
-          resolve();
-        }
-      });
-    };
-
-    const waitForMediaEvent = (eventName: "loadedmetadata" | "loadeddata") =>
-      new Promise<void>((resolve, reject) => {
-        const onReady = () => { cleanup(); resolve(); };
-        const onError = () => { cleanup(); reject(new Error("Não foi possível decodificar o vídeo original.")); };
-        const cleanup = () => {
-          video.removeEventListener(eventName, onReady);
-          video.removeEventListener("error", onError);
-        };
-        video.addEventListener(eventName, onReady, { once: true });
-        video.addEventListener("error", onError, { once: true });
-      });
-
-    const seekTo = (time: number) => new Promise<void>((resolve, reject) => {
-      if (Math.abs(video.currentTime - time) < 0.015 && video.readyState >= 2) return resolve();
-      const onSeeked = () => { cleanup(); resolve(); };
-      const onError = () => { cleanup(); reject(new Error("Falha ao extrair um quadro do vídeo.")); };
-      const cleanup = () => {
-        video.removeEventListener("seeked", onSeeked);
-        video.removeEventListener("error", onError);
+    const loadFrame = (index: number) => new Promise<void>((resolve, reject) => {
+      const image = new Image();
+      image.decoding = "async";
+      image.fetchPriority = index < 8 ? "high" : "auto";
+      image.onload = () => {
+        if (!active) return resolve();
+        frames[index] = image;
+        resolve();
       };
-      video.addEventListener("seeked", onSeeked, { once: true });
-      video.addEventListener("error", onError, { once: true });
-      video.currentTime = time;
+      image.onerror = () => reject(new Error(`Falha ao carregar o quadro ${index + 1}.`));
+      image.src = `/hero-frames/frame-${String(index + 1).padStart(3, "0")}.webp`;
+      if (image.complete && image.naturalWidth > 0) {
+        frames[index] = image;
+        resolve();
+      }
     });
 
-    const extractFrames = async () => {
-      video.preload = "auto";
-      video.muted = true;
-      video.load();
-      if (video.readyState < 1) await waitForMediaEvent("loadedmetadata");
-      if (video.readyState < 2) await waitForMediaEvent("loadeddata");
-
-      const sourceWidth = video.videoWidth;
-      const sourceHeight = video.videoHeight;
-      if (!sourceWidth || !sourceHeight || !Number.isFinite(video.duration)) {
-        throw new Error("O vídeo não forneceu dimensões ou duração válidas.");
-      }
-
-      const maxWidth = 960; // mantém a mesma nitidez da sequência em celular, tablet e desktop.
-      const frameWidth = Math.min(sourceWidth, maxWidth);
-      const frameHeight = Math.round(sourceHeight * (frameWidth / sourceWidth));
-      const frameCanvas = document.createElement("canvas");
-      frameCanvas.width = frameWidth;
-      frameCanvas.height = frameHeight;
-      const frameContext = frameCanvas.getContext("2d", { alpha: false });
-      if (!frameContext) throw new Error("Não foi possível preparar a sequência de imagens.");
-
-      const extracted: Blob[] = [];
-      for (let index = 0; index < FRAME_COUNT; index += 1) {
-        if (!active) throw new Error("Extração interrompida.");
-        const time = video.duration * index / (FRAME_COUNT - 1);
-        if (index > 0) await seekTo(time);
-        frameContext.drawImage(video, 0, 0, frameWidth, frameHeight);
-        const blob = await new Promise<Blob>((resolve, reject) => {
-          frameCanvas.toBlob(
-            (result) => result ? resolve(result) : reject(new Error("Não foi possível converter um quadro para WebP.")),
-            "image/webp",
-            0.74,
-          );
-        });
-        extracted.push(blob);
-      }
-
-      video.pause();
-      try { video.currentTime = 0; } catch { /* o poster permanece visível até a sequência ficar pronta */ }
-      await saveCachedFrames(extracted);
-      return extracted;
+    const loadAllFrames = async () => {
+      let next = 0;
+      const workers = Array.from({ length: 6 }, async () => {
+        while (active) {
+          const index = next++;
+          if (index >= FRAME_COUNT) return;
+          await loadFrame(index);
+        }
+      });
+      await Promise.all(workers);
+      if (!active) return;
+      loaded = true;
+      canvas.style.opacity = "1";
+      scheduleRender();
     };
 
-    const drawBitmap = (bitmap: ImageBitmap) => {
+    const drawFrame = (progress: number) => {
+      if (!loaded) return;
+      const index = Math.max(0, Math.min(FRAME_COUNT - 1, Math.round(progress * (FRAME_COUNT - 1))));
+      if (lastDrawnFrame === index) return;
+      const image = frames[index];
+      if (!image?.complete || !image.naturalWidth) return;
+
       const rect = canvas.getBoundingClientRect();
       const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
       const width = Math.max(1, Math.round(rect.width * pixelRatio));
@@ -310,58 +211,12 @@ export default function Home() {
         canvas.width = width;
         canvas.height = height;
       }
-      const scale = Math.max(width / bitmap.width, height / bitmap.height);
-      const drawWidth = bitmap.width * scale;
-      const drawHeight = bitmap.height * scale;
-      const x = (width - drawWidth) / 2;
-      const y = (height - drawHeight) / 2;
-      context.drawImage(bitmap, x, y, drawWidth, drawHeight);
-    };
-
-    const ensureBitmap = async (index: number) => {
-      if (index < 0 || index >= frames.length || bitmapCache.has(index) || bitmapLoading.has(index)) return;
-      bitmapLoading.add(index);
-      try {
-        const bitmap = await createImageBitmap(frames[index]);
-        if (!active) {
-          bitmap.close();
-          return;
-        }
-        bitmapCache.set(index, bitmap);
-        const keep = new Set([currentFrame - 2, currentFrame - 1, currentFrame, currentFrame + 1, currentFrame + 2, currentFrame + 3]);
-        bitmapCache.forEach((cached, cachedIndex) => {
-          if (!keep.has(cachedIndex)) {
-            cached.close();
-            bitmapCache.delete(cachedIndex);
-          }
-        });
-        if (currentFrame === index) {
-          drawBitmap(bitmap);
-          lastDrawnFrame = index;
-        }
-      } catch {
-        // O quadro seguinte será tentado novamente se o navegador falhar na primeira decodificação.
-      } finally {
-        bitmapLoading.delete(index);
-      }
-    };
-
-    const drawSequenceFrame = (progress: number) => {
-      if (!frames.length) return;
-      const index = Math.max(0, Math.min(frames.length - 1, Math.round(progress * (frames.length - 1))));
-      currentFrame = index;
-      const bitmap = bitmapCache.get(index);
-      if (bitmap) {
-        if (lastDrawnFrame !== index) {
-          drawBitmap(bitmap);
-          lastDrawnFrame = index;
-        }
-      } else {
-        void ensureBitmap(index);
-      }
-      void ensureBitmap(index - 1);
-      void ensureBitmap(index + 1);
-      void ensureBitmap(index + 2);
+      const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
+      const drawWidth = image.naturalWidth * scale;
+      const drawHeight = image.naturalHeight * scale;
+      context.clearRect(0, 0, width, height);
+      context.drawImage(image, (width - drawWidth) / 2, (height - drawHeight) / 2, drawWidth, drawHeight);
+      lastDrawnFrame = index;
     };
 
     const getTarget = () => {
@@ -389,67 +244,46 @@ export default function Home() {
     };
 
     const render = () => {
+      animationFrame = 0;
       if (!active) return;
       const { target, heroProgress } = getTarget();
-      if (fallbackToVideo) {
-        const destinationTime = clamp(target) * (video.duration || 0);
-        if (video.duration && !video.seeking && Math.abs(video.currentTime - destinationTime) > 0.035) {
-          try { video.currentTime = destinationTime; } catch { /* tenta novamente no próximo quadro */ }
-        }
-      } else {
-        drawSequenceFrame(clamp(target));
-      }
+      drawFrame(clamp(target));
       heroText.style.opacity = String(
         heroProgress > 0.7 ? Math.max(0, 1 - (heroProgress - 0.7) / 0.2) : 1,
       );
       const section = getCurrentSection();
-      if (document.body.dataset.cap !== section) document.body.dataset.cap = section;
-      animationFrame = window.requestAnimationFrame(render);
-    };
-
-    const prepareSequence = async () => {
-      try {
-        const cached = await readCachedFrames();
-        if (!active) return;
-        frames = cached || await extractFrames();
-        if (!active) return;
-        if (!frames.length) throw new Error("A sequência de imagens ficou vazia.");
-        canvas.style.opacity = "1";
-        video.pause();
-        await ensureBitmap(0);
-        await ensureBitmap(1);
-        await ensureBitmap(2);
-        await ensureBitmap(3);
-      } catch {
-        if (!active) return;
-        // Plano de contingência: mantém o vídeo original visível se a conversão não puder ser concluída.
-        fallbackToVideo = true;
-        canvas.style.opacity = "0";
-        video.preload = "auto";
-        video.style.opacity = "1";
-        video.style.width = "100%";
-        video.style.height = "100%";
-        video.load();
+      if (currentSection !== section) {
+        currentSection = section;
+        document.body.dataset.cap = section;
       }
     };
 
-    video.style.opacity = "0";
-    video.pause();
+    function scheduleRender() {
+      if (!active || animationFrame) return;
+      animationFrame = window.requestAnimationFrame(render);
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      lastDrawnFrame = -1;
+      scheduleRender();
+    });
+    resizeObserver.observe(canvas);
+    window.addEventListener("scroll", scheduleRender, { passive: true });
+    window.addEventListener("resize", scheduleRender, { passive: true });
     canvas.style.opacity = "0";
-    animationFrame = window.requestAnimationFrame(render);
-    void prepareSequence();
+    scheduleRender();
+    void loadAllFrames().catch(() => {
+      if (active) canvas.style.opacity = "0";
+    });
 
     return () => {
       active = false;
       if (animationFrame) window.cancelAnimationFrame(animationFrame);
-      bitmapCache.forEach((bitmap) => bitmap.close());
-      bitmapCache.clear();
-      video.pause();
-      video.style.opacity = "";
-      video.style.width = "";
-      video.style.height = "";
-      canvas.style.opacity = "";
+      resizeObserver.disconnect();
+      window.removeEventListener("scroll", scheduleRender);
+      window.removeEventListener("resize", scheduleRender);
       delete document.body.dataset.cap;
+      frames.forEach((image) => { if (image) image.src = ""; });
     };
   }, [view]);
 
