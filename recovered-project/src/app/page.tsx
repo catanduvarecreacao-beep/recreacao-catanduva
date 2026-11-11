@@ -100,6 +100,19 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Permite abrir diretamente os acessos por URL, inclusive após atualizar a página.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const access = params.get("acesso");
+    if (access === "professor" || access === "diretor") {
+      setAccessIntent(access);
+      setView("login");
+      if (access === "diretor") {
+        setMessage("Entre com seu e-mail e senha ou crie o cadastro de diretor da sua escola.");
+      }
+    }
+  }, []);
+
   // Mantém a sessão sincronizada com o Supabase Auth.
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -371,6 +384,16 @@ export default function Home() {
     }
   }
 
+  function openAccess(role: "professor" | "diretor") {
+    setAccessIntent(role);
+    setView("login");
+    setMessage(role === "diretor"
+      ? "Entre com seu e-mail e senha ou crie o cadastro de diretor da sua escola."
+      : "");
+    window.history.pushState(null, "", `/?acesso=${role}`);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }
+
   async function signOut() {
     await supabase.auth.signOut();
     setProfile(null);
@@ -602,12 +625,12 @@ export default function Home() {
             <div className="texto" id="texto" ref={heroTextRef}>
               <h1><span className="pal">Recreação</span><span className="pal">Catanduva</span></h1>
               <p>Por professores. Para professores.</p>
-              <a className="botao" href="#login" onClick={e=>{e.preventDefault();setAccessIntent("professor");setView("login");setMessage("");window.scrollTo({top:0,behavior:"instant"});}}>Área do professor</a>
+              <a className="botao" href="/?acesso=professor" onClick={e=>{e.preventDefault();openAccess("professor");}}>Área do professor</a>
             </div>
           </div></section>
           <section className="bloco" id="segmentos" ref={directorSectionRef}>
             <h2>Área do diretor</h2><p className="intro">Acesse a área restrita da direção.</p>
-            <a className="botao grande" href="#login" onClick={e=>{e.preventDefault();setAccessIntent("diretor");setView("login");setMessage("Entre com seu e-mail e senha ou crie o cadastro de diretor da sua escola.");window.scrollTo({top:0,behavior:"instant"});}}>Acessar área do diretor</a>
+            <a className="botao grande" href="/?acesso=diretor" onClick={e=>{e.preventDefault();openAccess("diretor");}}>Acessar área do diretor</a>
           </section>
           <section className="bloco ia" id="educa-ai" ref={aiSectionRef}><div className="painel">
             <h2>Educa A.I</h2><p className="intro">Ferramentas com inteligência artificial para o planejamento do professor.</p>
@@ -634,8 +657,8 @@ export default function Home() {
           <div>
             <button onClick={()=>setView("home")}>Início</button>
             <button className="educaNav" onClick={()=>{setView("educa");setMessage("");}}>Educa I.A.</button>
-            <button onClick={()=>{setAccessIntent("professor");setView("login");setMessage("");}}>Área do Professor</button>
-            <button className="director" onClick={()=>{setAccessIntent("diretor");setView("login");setMessage("Entre com seu e-mail e senha ou crie o cadastro de diretor da sua escola.");}}>Área do Diretor</button>
+            <button onClick={()=>openAccess("professor")}>Área do Professor</button>
+            <button className="director" onClick={()=>openAccess("diretor")}>Área do Diretor</button>
             {session&&<button onClick={signOut}>Sair</button>}
           </div>
         </nav>
@@ -710,14 +733,14 @@ export default function Home() {
             </button>
             <small>ACESSO SEGURO</small>
             <h2>
-              {view === "signup" ? "Criar conta de professor" : view === "directorSignup" ? "Cadastro do diretor" : "Bem-vindo de volta!"}
+              {view === "signup" ? "Criar conta de professor" : view === "directorSignup" ? "Cadastro do diretor" : accessIntent === "diretor" ? "Acesso do diretor" : accessIntent === "professor" ? "Acesso do professor" : "Bem-vindo de volta!"}
             </h2>
             <p>
               {view === "signup"
                 ? "Vincule sua conta à escola, ao segmento e à sua turma."
                 : view === "directorSignup"
                   ? "Cadastre-se com e-mail e senha para conferir as avaliações da sua escola."
-                  : "Entre para acessar suas avaliações."}
+                  : accessIntent === "diretor" ? "Entre com a conta de diretor vinculada à sua escola." : "Entre para acessar suas avaliações."}
             </p>
 
             <form
