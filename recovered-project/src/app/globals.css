@@ -679,7 +679,7 @@ body[data-cap="seg"] .referenceHome .referenceVideo:before{opacity:.55}body[data
 @media(max-width:420px){
   .referenceHome .homeNav .brand{font-size:15px}
   .referenceHome .homeNav>div button{font-size:11px;padding:9px 10px}
-  .referenceHome .texto{left:18px;right:18px;top:20px;bottom:auto}
+  .referenceHome .texto{left:18px;right:18px;top:50%;bottom:auto;transform:translateY(-50%)}
   .referenceHome .texto h1{font-size:clamp(2.45rem,11.5vw,3.25rem)}
   .referenceHome .painel{padding:17px}
   .referenceHome .referenceFooter{font-size:.88rem}
