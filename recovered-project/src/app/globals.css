@@ -464,3 +464,9 @@ body[data-cap="seg"] .referenceHome .referenceVideo:before{opacity:.55}body[data
 .referenceHome .referenceVideo{z-index:0}
 .referenceHome .topo{z-index:20}
 .referenceHome #hero,.referenceHome section.bloco,.referenceHome .referenceFooter{position:relative;z-index:1}
+
+
+/* Sequência de quadros do vídeo de fundo, desenhada em Canvas */
+.referenceHome .referenceVideo{background:#8fd0f5 url('/hero-poster.jpg') center/cover no-repeat}
+.referenceHome .referenceVideoCanvas{position:absolute;inset:0;display:block;width:100%;height:100%;opacity:0;transition:opacity .12s linear}
+.referenceHome .referenceVideo video{left:-2px;top:-2px;width:1px;height:1px;opacity:0;pointer-events:none}
