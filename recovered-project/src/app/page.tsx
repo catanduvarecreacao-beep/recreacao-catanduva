@@ -153,7 +153,7 @@ export default function Home() {
     let active = true;
     let animationFrame = 0;
     let objectUrl: string | null = null;
-    let latestTime = 0;
+    let currentTime = 0;
     const controller = new AbortController();
     const clamp = (value: number) => Math.min(Math.max(value, 0), 1);
     const chapters: Array<[HTMLElement, number, number]> = [
@@ -194,11 +194,13 @@ export default function Home() {
       if (!active) return;
       const { target, heroProgress } = getTarget();
       if (video.duration && Number.isFinite(video.duration)) {
-        latestTime = clamp(target) * video.duration;
-        // Não enfileira seeks: enquanto o navegador decodifica um quadro,
-        // a rolagem atualiza latestTime; ao terminar, aplica-se só a posição mais recente.
-        if (!video.seeking && Math.abs(video.currentTime - latestTime) > 0.035) {
-          try { video.currentTime = latestTime; } catch { /* aguarda o próximo quadro */ }
+        const destinationTime = clamp(target) * video.duration;
+        // Mesma interpolação do HTML original: acompanha a rolagem com suavização de 0.12.
+        currentTime += (destinationTime - currentTime) * 0.12;
+        // Não acumula seeks: se o navegador ainda estiver buscando um quadro,
+        // o próximo frame recalcula a posição mais recente da rolagem.
+        if (!video.seeking && Math.abs(destinationTime - currentTime) > 0.01) {
+          try { video.currentTime = currentTime; } catch { /* tenta novamente no próximo quadro */ }
         }
       }
       heroText.style.opacity = String(
