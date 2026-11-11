@@ -456,8 +456,7 @@ body[data-cap="seg"] .referenceHome .referenceVideo:before{opacity:.55}body[data
 .referenceHome .extras{display:flex;flex-wrap:wrap;gap:1rem;width:100%}.referenceHome .extras a{flex:1 1 16rem;border-radius:1.25rem;padding:1.5rem;text-decoration:none;background:var(--ref-ink);color:var(--ref-white);transition:transform .25s cubic-bezier(.3,1.5,.5,1),box-shadow .25s,background .2s}.referenceHome .extras a:hover,.referenceHome .extras a:focus-visible{transform:translateY(-6px) scale(1.02);box-shadow:0 14px 26px rgba(20,32,70,.35)}.referenceHome .extras strong{display:block;font-family:"Baloo 2",sans-serif;font-size:1.5rem}
  .referenceHome .referenceFooter{position:relative;z-index:1;background:var(--ref-ink);color:var(--ref-white);padding:2.5rem clamp(1.25rem,8vw,7rem);font-size:.95rem}.referenceHome .referenceFooter p{font-family:"Baloo 2",sans-serif;font-weight:600;font-size:1.3rem;margin-bottom:1rem}.referenceHome .referenceFooter ul{list-style:none;padding:0;margin:0;display:grid;gap:.4rem}.referenceHome .referenceFooter a{text-decoration:underline;text-underline-offset:3px}
 @media(max-width:720px){.referenceHome .marca{font-size:1.05rem}.referenceHome .referenceVideo:after{background:linear-gradient(0deg,rgba(20,32,70,.75),rgba(20,32,70,.1) 70%)}.referenceHome .texto{top:auto;bottom:12%;transform:none}}
-@media(prefers-reduced-motion:reduce){.referenceHome #hero{height:100vh}}
-@media(prefers-reduced-motion:reduce){.referenceHome .pal,.referenceHome .texto p,.referenceHome .texto .botao,.referenceHome .texto h1{animation:none;opacity:1;transform:none;filter:none}.referenceHome .ferramentas a:hover,.referenceHome .extras a:hover{transform:none}html{scroll-behavior:auto}#hero{height:100vh}}
+@media(prefers-reduced-motion:reduce){.referenceHome .pal,.referenceHome .texto p,.referenceHome .texto .botao,.referenceHome .texto h1{animation:none;opacity:1;transform:none;filter:none}.referenceHome .ferramentas a:hover,.referenceHome .extras a:hover{transform:none}html{scroll-behavior:auto}}
 
 /* Camadas do palco: vídeo atrás do conteúdo, mas acima do fundo branco da página */
 .referenceHome{background:transparent}
@@ -466,10 +465,10 @@ body[data-cap="seg"] .referenceHome .referenceVideo:before{opacity:.55}body[data
 .referenceHome #hero,.referenceHome section.bloco,.referenceHome .referenceFooter{position:relative;z-index:1}
 
 
-/* Sequência de quadros do vídeo de fundo, desenhada em Canvas */
+/* Sequência de quadros WebP pré-gerados e sincronizados com a rolagem */
 .referenceHome .referenceVideo{background:#8fd0f5 url('/hero-poster.jpg') center/cover no-repeat}
 .referenceHome .referenceVideoCanvas{position:absolute;inset:0;display:block;width:100%;height:100%;opacity:0;transition:opacity .12s linear}
-.referenceHome .referenceVideo video{left:-2px;top:-2px;width:1px;height:1px;opacity:0;pointer-events:none}
+
 
 
 /* Ajustes da página inicial: menu compartilhado com as páginas internas */
