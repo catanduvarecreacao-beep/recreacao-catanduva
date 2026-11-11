@@ -270,7 +270,7 @@ export default function Home() {
         throw new Error("O vídeo não forneceu dimensões ou duração válidas.");
       }
 
-      const maxWidth = window.innerWidth < 700 ? 640 : 960;
+      const maxWidth = 960; // mantém a mesma nitidez da sequência em celular, tablet e desktop.
       const frameWidth = Math.min(sourceWidth, maxWidth);
       const frameHeight = Math.round(sourceHeight * (frameWidth / sourceWidth));
       const frameCanvas = document.createElement("canvas");
