@@ -824,14 +824,18 @@ export default function Home() {
               <source src="/hero.mp4" type="video/mp4" />
             </video>
           </div>
-          <header className="topo">
-            <a className="marca" href="#hero">Recreação Catanduva</a>
-            <nav aria-label="Principal"><ul className="menu">
-              <li><a href="#segmentos">Área do diretor</a></li>
-              <li><a href="#educa-ai">Educa A.I</a></li>
-              <li><a href="https://sites.google.com/view/recreacaocatanduva/recursos-digitais" target="_blank" rel="noreferrer">Recursos Digitais</a></li>
-            </ul></nav>
-          </header>
+          <nav className="nav homeNav" aria-label="Navegação principal">
+            <button className="brand" onClick={() => { setView("home"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+              <i>RC</i> Recreação <b>Catanduva</b>
+            </button>
+            <div>
+              <button onClick={() => { setView("home"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Início</button>
+              <button className="educaNav" onClick={() => { setView("educa"); setMessage(""); window.scrollTo({ top: 0, behavior: "instant" }); }}>Educa I.A.</button>
+              <button onClick={() => openAccess("professor")}>Área do Professor</button>
+              <button className="director" onClick={() => openAccess("diretor")}>Área do Diretor</button>
+              {session && <button onClick={signOut}>Sair</button>}
+            </div>
+          </nav>
           <section id="hero" ref={heroSectionRef} aria-label="Apresentação"><div className="palco">
             <div className="texto" id="texto" ref={heroTextRef}>
               <h1><span className="pal">Recreação</span><span className="pal">Catanduva</span></h1>
