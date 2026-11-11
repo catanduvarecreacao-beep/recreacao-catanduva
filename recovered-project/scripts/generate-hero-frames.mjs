@@ -18,7 +18,7 @@ try {
   await execFileAsync(ffmpegPath, ["-hide_banner", "-i", source], { maxBuffer: 1024 * 1024 });
 } catch (error) {
   const details = String(error.stderr || "");
-  const match = details.match(/Duration:\\s*(\\d+):(\\d+):(\\d+(?:\\.\\d+)?)/);
+  const match = details.split("Duration:")[1]?.trim().match(/^([0-9]{2}):([0-9]{2}):([0-9]+([.][0-9]+)?)/);
   if (match) duration = Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3]);
 }
 if (!duration || !Number.isFinite(duration)) {
