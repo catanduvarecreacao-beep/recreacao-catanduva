@@ -4,7 +4,7 @@ import CriadorAula from "./CriadorAula";
 import RelatorioIndividual from "./RelatorioIndividual";
 import PEI from "./PEI";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createClient, type Session } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -73,9 +73,11 @@ type Evaluation = {
 };
 
 export default function Home() {
+  const heroCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [view, setView] = useState<"home" | "login" | "signup" | "directorSignup" | "app" | "director" | "educa" | "creator" | "individual" | "pei">("home");
+  const [accessIntent, setAccessIntent] = useState<"professor" | "diretor" | null>(null);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -98,6 +100,25 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Permite abrir diretamente os acessos por URL, inclusive após atualizar a página.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const access = params.get("acesso");
+    if (access === "professor" || access === "diretor") {
+      setAccessIntent(access);
+      setView("login");
+      if (access === "diretor") {
+        setMessage("Entre com seu e-mail e senha ou crie o cadastro de diretor da sua escola.");
+      }
+      return;
+    }
+
+    const tool = params.get("ferramenta");
+    if (tool === "criador-aula") setView("creator");
+    if (tool === "relatorio-individual") setView("individual");
+    if (tool === "pei") setView("pei");
+  }, []);
+
   // Mantém a sessão sincronizada com o Supabase Auth.
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -108,6 +129,163 @@ export default function Home() {
 
     return () => data.subscription.unsubscribe();
   }, []);
+
+  const heroSectionRef = useRef<HTMLElement | null>(null);
+  const directorSectionRef = useRef<HTMLElement | null>(null);
+  const aiSectionRef = useRef<HTMLElement | null>(null);
+  const finalSectionRef = useRef<HTMLElement | null>(null);
+  const heroTextRef = useRef<HTMLDivElement | null>(null);
+
+  // Exibe imagens WebP pré-geradas no build, sincronizadas diretamente com a rolagem.
+  // Nenhum vídeo é convertido ou decodificado durante a visita do usuário.
+  useEffect(() => {
+    if (view !== "home") return;
+    const canvas = heroCanvasRef.current;
+    const hero = heroSectionRef.current;
+    const director = directorSectionRef.current;
+    const ai = aiSectionRef.current;
+    const finalSection = finalSectionRef.current;
+    const heroText = heroTextRef.current;
+    const context = canvas?.getContext("2d", { alpha: false, desynchronized: true });
+    if (!canvas || !context || !hero || !director || !ai || !finalSection || !heroText) return;
+
+    const FRAME_COUNT = 60;
+    const frames: HTMLImageElement[] = new Array(FRAME_COUNT);
+    let active = true;
+    let animationFrame = 0;
+    let lastDrawnFrame = -1;
+    let loaded = false;
+    let currentSection = "";
+    const clamp = (value: number) => Math.min(Math.max(value, 0), 1);
+    const chapters: Array<[HTMLElement, number, number]> = [
+      [hero, 0, 0.5],
+      [director, 0.5, 0.75],
+      [ai, 0.75, 1],
+    ];
+
+    const loadFrame = (index: number) => new Promise<void>((resolve, reject) => {
+      const image = new Image();
+      image.decoding = "async";
+      image.fetchPriority = index < 8 ? "high" : "auto";
+      image.onload = () => {
+        if (!active) return resolve();
+        frames[index] = image;
+        resolve();
+      };
+      image.onerror = () => reject(new Error(`Falha ao carregar o quadro ${index + 1}.`));
+      image.src = `/hero-frames/frame-${String(index + 1).padStart(3, "0")}.webp`;
+      if (image.complete && image.naturalWidth > 0) {
+        frames[index] = image;
+        resolve();
+      }
+    });
+
+    const loadAllFrames = async () => {
+      let next = 0;
+      const workers = Array.from({ length: 6 }, async () => {
+        while (active) {
+          const index = next++;
+          if (index >= FRAME_COUNT) return;
+          await loadFrame(index);
+        }
+      });
+      await Promise.all(workers);
+      if (!active) return;
+      loaded = true;
+      canvas.style.opacity = "1";
+      scheduleRender();
+    };
+
+    const drawFrame = (progress: number) => {
+      if (!loaded) return;
+      const index = Math.max(0, Math.min(FRAME_COUNT - 1, Math.round(progress * (FRAME_COUNT - 1))));
+      if (lastDrawnFrame === index) return;
+      const image = frames[index];
+      if (!image?.complete || !image.naturalWidth) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+      const width = Math.max(1, Math.round(rect.width * pixelRatio));
+      const height = Math.max(1, Math.round(rect.height * pixelRatio));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+      const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
+      const drawWidth = image.naturalWidth * scale;
+      const drawHeight = image.naturalHeight * scale;
+      context.clearRect(0, 0, width, height);
+      context.drawImage(image, (width - drawWidth) / 2, (height - drawHeight) / 2, drawWidth, drawHeight);
+      lastDrawnFrame = index;
+    };
+
+    const getTarget = () => {
+      let target = 0;
+      let heroProgress = 0;
+      chapters.forEach(([element, from, to], index) => {
+        const rect = element.getBoundingClientRect();
+        const progress = index === 0
+          ? clamp(-rect.top / Math.max(1, element.offsetHeight - window.innerHeight))
+          : clamp((window.innerHeight - rect.top) / (window.innerHeight * 0.9));
+        if (index === 0) heroProgress = progress;
+        if (index === 0 || progress > 0) target = from + (to - from) * progress;
+      });
+      return { target, heroProgress };
+    };
+
+    const getCurrentSection = () => {
+      const midpoint = window.innerHeight / 2;
+      let current = "hero";
+      ([["hero", hero], ["seg", director], ["ia", ai], ["fim", finalSection]] as Array<[string, HTMLElement]>)
+        .forEach(([name, element]) => {
+          if (element.getBoundingClientRect().top <= midpoint) current = name;
+        });
+      return current;
+    };
+
+    const render = () => {
+      animationFrame = 0;
+      if (!active) return;
+      const { target, heroProgress } = getTarget();
+      drawFrame(clamp(target));
+      heroText.style.opacity = String(
+        heroProgress > 0.7 ? Math.max(0, 1 - (heroProgress - 0.7) / 0.2) : 1,
+      );
+      const section = getCurrentSection();
+      if (currentSection !== section) {
+        currentSection = section;
+        document.body.dataset.cap = section;
+      }
+    };
+
+    function scheduleRender() {
+      if (!active || animationFrame) return;
+      animationFrame = window.requestAnimationFrame(render);
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      lastDrawnFrame = -1;
+      scheduleRender();
+    });
+    resizeObserver.observe(canvas);
+    window.addEventListener("scroll", scheduleRender, { passive: true });
+    window.addEventListener("resize", scheduleRender, { passive: true });
+    canvas.style.opacity = "0";
+    scheduleRender();
+    void loadAllFrames().catch(() => {
+      if (active) canvas.style.opacity = "0";
+    });
+
+    return () => {
+      active = false;
+      if (animationFrame) window.cancelAnimationFrame(animationFrame);
+      resizeObserver.disconnect();
+      window.removeEventListener("scroll", scheduleRender);
+      window.removeEventListener("resize", scheduleRender);
+      delete document.body.dataset.cap;
+      frames.forEach((image) => { if (image) image.src = ""; });
+    };
+  }, [view]);
 
   // Permite fechar a janela do material pelo teclado.
   useEffect(() => {
@@ -248,6 +426,16 @@ export default function Home() {
     if (error) {
       setMessage("Não foi possível entrar. Confira e-mail, senha e confirmação do cadastro.");
     }
+  }
+
+  function openAccess(role: "professor" | "diretor") {
+    setAccessIntent(role);
+    setView("login");
+    setMessage(role === "diretor"
+      ? "Entre com seu e-mail e senha ou crie o cadastro de diretor da sua escola."
+      : "");
+    window.history.pushState(null, "", `/?acesso=${role}`);
+    window.scrollTo({ top: 0, behavior: "instant" });
   }
 
   async function signOut() {
@@ -462,121 +650,65 @@ export default function Home() {
 
   return (
     <main>
-      <nav className="nav">
-        <button className="brand" onClick={() => setView("home")}>
-          <i>RC</i> Recreação <b>Catanduva</b>
-        </button>
-        <div>
-          <button onClick={() => setView("home")}>Início</button>
-          <button className="educaNav" onClick={() => { setView("educa"); setMessage(""); }}>Educa I.A.</button>
-          <button
-            onClick={() => {
-              setView("login");
-              setMessage("");
-            }}
-          >
-            Área do Professor
-          </button>
-          <button
-            className="director"
-            onClick={() => {
-              setView("login");
-              setMessage("Entre com seu e-mail e senha ou crie o cadastro de diretor da sua escola.");
-            }}
-          >
-            Área do Diretor
-          </button>
-          {session && <button onClick={signOut}>Sair</button>}
+      {view === "home" ? (
+        <div className="referenceHome">
+          <div className="referenceVideo" aria-hidden="true">
+            <canvas ref={heroCanvasRef} className="referenceVideoCanvas" />
+          </div>
+          <nav className="nav homeNav" aria-label="Navegação principal">
+            <button className="brand" onClick={() => { setView("home"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+              <i>RC</i> Recreação <b>Catanduva</b>
+            </button>
+            <div>
+              <button onClick={() => { setView("home"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Início</button>
+              <button className="educaNav" onClick={() => { setView("educa"); setMessage(""); window.scrollTo({ top: 0, behavior: "instant" }); }}>Educa I.A.</button>
+              <button onClick={() => openAccess("professor")}>Área do Professor</button>
+              <button className="director" onClick={() => openAccess("diretor")}>Área do Diretor</button>
+              {session && <button onClick={signOut}>Sair</button>}
+            </div>
+          </nav>
+          <section id="hero" ref={heroSectionRef} aria-label="Apresentação"><div className="palco">
+            <div className="texto" id="texto" ref={heroTextRef}>
+              <h1><span className="pal">Recreação</span><span className="pal">Catanduva</span></h1>
+              <p>Por professores. Para professores.</p>
+              <a className="botao" href="/?acesso=professor" onClick={e=>{e.preventDefault();openAccess("professor");}}>Área do professor</a>
+            </div>
+          </div></section>
+          <section className="bloco" id="segmentos" ref={directorSectionRef}>
+            <h2>Área do diretor</h2><p className="intro">Acesse a área restrita da direção.</p>
+            <a className="botao grande" href="/?acesso=diretor" onClick={e=>{e.preventDefault();openAccess("diretor");}}>Acessar área do diretor</a>
+          </section>
+          <section className="bloco ia" id="educa-ai" ref={aiSectionRef}><div className="painel">
+            <h2>Educa A.I</h2><p className="intro">Ferramentas com inteligência artificial para o planejamento do professor.</p>
+            <ul className="ferramentas">
+              <li><a href="/?ferramenta=criador-aula" onClick={e=>{e.preventDefault();setView("creator");window.scrollTo({top:0,behavior:"instant"});}}>Criador de Aula</a></li>
+              <li><a href="/?ferramenta=relatorio-individual" onClick={e=>{e.preventDefault();setView("individual");window.scrollTo({top:0,behavior:"instant"});}}>Relatório Individual</a></li>
+              <li><a href="/?ferramenta=pei" onClick={e=>{e.preventDefault();setView("pei");window.scrollTo({top:0,behavior:"instant"});}}>P.E.I</a></li>
+              <li><a href="#educa-ai" onClick={e=>{e.preventDefault();setView("educa");window.scrollTo({top:0,behavior:"instant"});}}>Projeto</a></li>
+            </ul>
+          </div></section>
+          <section className="bloco" id="fim" ref={finalSectionRef}><div className="extras">
+            <a href="https://sites.google.com/view/recreacaocatanduva/recursos-digitais" target="_blank" rel="noreferrer"><strong>Recursos Digitais</strong>Acessar os recursos</a>
+          </div></section>
+          <footer className="referenceFooter"><p>Por professores. Para professores.</p><ul>
+            <li><a href="https://sites.google.com/view/recreacaocatanduva/propriedade-intelectual-e-termos-de-uso" target="_blank" rel="noreferrer">Propriedade Intelectual e Termos de Uso</a></li>
+            <li><a href="https://sites.google.com/view/recreacaocatanduva/backuppr%C3%A9-2antigo/protocolo-%C3%A9tico-para-uso-de-intelig%C3%AAncia-artificial" target="_blank" rel="noreferrer">Protocolo ético para uso de inteligência artificial</a></li>
+            <li><a href="https://sites.google.com/view/recreacaocatanduva/politicadeprotecaodedados" target="_blank" rel="noreferrer">Política de proteção de dados</a></li>
+            <li>Contato: <a href="mailto:catanduvarecreacao@gmail.com">catanduvarecreacao@gmail.com</a></li>
+          </ul></footer>
         </div>
-      </nav>
-
-      {view === "home" && (
-        <>
-        <section className="hero">
-          <div className="heroText">
-            <small>✦ EDUCAÇÃO INFANTIL • CATANDUVA</small>
-            <h1>
-              Recreação <em>Catanduva</em>
-            </h1>
-            <p>
-              Transformamos momentos em memórias, aprendizado, alegria e sorrisos através de
-              atividades lúdicas, promovendo o desenvolvimento infantil com muito carinho.
-            </p>
-            <div className="actions">
-              <button
-                className="primary"
-                onClick={() => {
-                  setView("login");
-                  setMessage("");
-                }}
-              >
-                Acessar o sistema →
-              </button>
-              <button
-                className="secondary"
-                onClick={() => {
-                  setView("signup");
-                  setMessage("");
-                }}
-              >
-                Criar conta de professor
-              </button>
-            </div>
-            <label className="foot">✓ Avaliações organizadas por escola, segmento e turma</label>
+      ) : (
+        <nav className="nav">
+          <button className="brand" onClick={()=>setView("home")}><i>RC</i> Recreação <b>Catanduva</b></button>
+          <div>
+            <button onClick={()=>setView("home")}>Início</button>
+            <button className="educaNav" onClick={()=>{setView("educa");setMessage("");}}>Educa I.A.</button>
+            <button onClick={()=>openAccess("professor")}>Área do Professor</button>
+            <button className="director" onClick={()=>openAccess("diretor")}>Área do Diretor</button>
+            {session&&<button onClick={signOut}>Sair</button>}
           </div>
-          <div className="heroVisual" aria-label="Painel ilustrativo de atividades educativas">
-            <div className="visualGlow" />
-            <div className="floatingShape shapeOne">✦</div>
-            <div className="floatingShape shapeTwo">●</div>
-            <div className="activityCard">
-              <div className="activityCardTop">
-                <span className="activityIcon">✿</span>
-                <span className="activityTag">APRENDER BRINCANDO</span>
-              </div>
-              <div className="activityIllustration">
-                <div className="sunShape" />
-                <div className="rainbowShape"><i /><i /><i /></div>
-                <div className="ballShape ballBlue" />
-                <div className="ballShape ballOrange" />
-                <div className="blockShape blockYellow" />
-                <div className="blockShape blockPurple" />
-              </div>
-              <div className="activityCardBottom">
-                <div>
-                  <strong>Pequenas descobertas,</strong>
-                  <span>grandes possibilidades.</span>
-                </div>
-                <span className="arrowBubble">↗</span>
-              </div>
-            </div>
-            <div className="floatingNote noteTop"><span>✦</span> Criatividade</div>
-            <div className="floatingNote noteBottom"><span>♡</span> Cuidado em cada detalhe</div>
-          </div>
-        </section>
-        <section className="homeHighlights" aria-label="Nossos valores">
-          <div className="highlightIntro">
-            <small>NOSSO PROPÓSITO</small>
-            <h2>Um espaço para <em>crescer e descobrir.</em></h2>
-          </div>
-          <article className="highlightCard highlightBlue">
-            <span className="highlightIcon">✦</span>
-            <h3>Aprendizagem</h3>
-            <p>Experiências que despertam a curiosidade e valorizam cada descoberta.</p>
-          </article>
-          <article className="highlightCard highlightOrange">
-            <span className="highlightIcon">♡</span>
-            <h3>Acolhimento</h3>
-            <p>Um olhar atento e cuidadoso para respeitar o ritmo de cada criança.</p>
-          </article>
-          <article className="highlightCard highlightYellow">
-            <span className="highlightIcon">✿</span>
-            <h3>Brincadeira</h3>
-            <p>O brincar como caminho para explorar, conviver e aprender.</p>
-          </article>
-        </section>
-        </>
+        </nav>
       )}
-
       {view === "educa" && (
         <section className="educaPage">
           <div className="educaHero">
@@ -647,14 +779,14 @@ export default function Home() {
             </button>
             <small>ACESSO SEGURO</small>
             <h2>
-              {view === "signup" ? "Criar conta de professor" : view === "directorSignup" ? "Cadastro do diretor" : "Bem-vindo de volta!"}
+              {view === "signup" ? "Criar conta de professor" : view === "directorSignup" ? "Cadastro do diretor" : accessIntent === "diretor" ? "Acesso do diretor" : accessIntent === "professor" ? "Acesso do professor" : "Bem-vindo de volta!"}
             </h2>
             <p>
               {view === "signup"
                 ? "Vincule sua conta à escola, ao segmento e à sua turma."
                 : view === "directorSignup"
                   ? "Cadastre-se com e-mail e senha para conferir as avaliações da sua escola."
-                  : "Entre para acessar suas avaliações."}
+                  : accessIntent === "diretor" ? "Entre com a conta de diretor vinculada à sua escola." : "Entre para acessar suas avaliações."}
             </p>
 
             <form
